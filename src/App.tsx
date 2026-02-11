@@ -1,0 +1,169 @@
+import { useState, useCallback } from 'react';
+import './App.css';
+import { ImageWorkspace } from './components/ImageWorkspace';
+import { ControlPanel } from './components/ControlPanel';
+import { CalibrationModal } from './components/CalibrationModal';
+import { EmptyState } from './components/EmptyState';
+import { ErrorAlert } from './components/ErrorAlert';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { useCalibration } from './hooks/useCalibration';
+import { useImageUpload } from './hooks/useImageUpload';
+import { useMeasurementPoints } from './hooks/useMeasurementPoints';
+import { useMeasurement } from './hooks/useMeasurement';
+import type { Unit, Dimensions, CalibrationInput } from './types';
+import { DEFAULTS } from './constants';
+import { logger } from './utils/logger';
+
+function App() {
+  // Custom hooks for state management
+  const calibration = useCalibration();
+  const imageUpload = useImageUpload();
+  const measurementPoints = useMeasurementPoints();
+
+  // Local UI state
+  const [screenDimensions, setScreenDimensions] = useState<Dimensions>({ width: 0, height: 0 });
+  const [isDraggingPoints, setIsDraggingPoints] = useState(false);
+  const [unit, setUnit] = useState<Unit>(DEFAULTS.UNIT);
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const [isInputModalOpen, setIsInputModalOpen] = useState(false);
+  const [calibrationError, setCalibrationError] = useState<string | null>(null);
+
+  // Calculate measurements
+  const measurement = useMeasurement(
+    measurementPoints.points,
+    screenDimensions,
+    calibration.calibration,
+    unit
+  );
+
+  // Handle file upload
+  const handleFileLoad = useCallback(
+    async (file: File, isCalibrationMode: boolean) => {
+      await imageUpload.loadImage(file);
+
+      if (isCalibrationMode && !imageUpload.error) {
+        setIsCalibrating(true);
+      }
+    },
+    [imageUpload]
+  );
+
+  // Handle calibration confirmation
+  const handleCalibrationConfirm = useCallback(
+    (realLength: number, inputUnit: 'cm' | 'inch') => {
+      const input: CalibrationInput = { realLength, unit: inputUnit };
+      const result = calibration.calibrate(measurement.screenDistancePx, input);
+
+      if (!result.success) {
+        setCalibrationError(result.error || 'Calibration failed');
+        return;
+      }
+
+      // Success - close modals and update unit
+      setIsInputModalOpen(false);
+      setIsCalibrating(false);
+      setCalibrationError(null);
+      setUnit(inputUnit);
+
+      logger.info('Calibration completed successfully');
+    },
+    [calibration, measurement.screenDistancePx]
+  );
+
+  // Handle reset points
+  const handleResetPoints = useCallback(() => {
+    measurementPoints.reset();
+    calibration.reset();
+    setUnit(DEFAULTS.UNIT);
+    logger.info('Points and calibration reset');
+  }, [measurementPoints, calibration]);
+
+  // Handle reset image
+  const handleResetImage = useCallback(() => {
+    imageUpload.clearImage();
+    measurementPoints.reset();
+    calibration.reset();
+    setUnit(DEFAULTS.UNIT);
+    setIsCalibrating(false);
+    setIsInputModalOpen(false);
+    setIsDraggingPoints(false);
+    setCalibrationError(null);
+    logger.info('App reset to initial state');
+  }, [imageUpload, measurementPoints, calibration]);
+
+  // Handle dimension changes
+  const handleDimensionsChange = useCallback((width: number, height: number) => {
+    setScreenDimensions({ width, height });
+  }, []);
+
+  return (
+    <div className="app-container">
+      {/* Error alerts */}
+      {imageUpload.error && (
+        <ErrorAlert message={imageUpload.error} onDismiss={imageUpload.clearError} />
+      )}
+      {calibrationError && (
+        <ErrorAlert message={calibrationError} onDismiss={() => setCalibrationError(null)} />
+      )}
+
+      {/* Loading spinner */}
+      {imageUpload.isLoading && <LoadingSpinner />}
+
+      {/* Main content */}
+      {!imageUpload.imageSrc ? (
+        <EmptyState
+          onImageSelect={(file) => handleFileLoad(file, false)}
+          onCalibrateSelect={(file) => handleFileLoad(file, true)}
+        />
+      ) : (
+        <div className="workspace" style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+            <ImageWorkspace
+              imageSrc={imageUpload.imageSrc}
+              points={measurementPoints.points}
+              onPointsChange={measurementPoints.setPoints}
+              onDimensionsChange={handleDimensionsChange}
+              onDragStart={() => setIsDraggingPoints(true)}
+              onDragEnd={() => setIsDraggingPoints(false)}
+            />
+          </div>
+
+          <div
+            className={isDraggingPoints ? 'control-panel-hidden' : ''}
+            style={{
+              opacity: isDraggingPoints ? 0 : 1,
+              pointerEvents: isDraggingPoints ? 'none' : 'auto',
+              transition: 'opacity 0.2s ease-in-out'
+            }}
+          >
+            <ControlPanel
+              distance={measurement.displayValue}
+              unit={unit}
+              isCalibrated={calibration.isCalibrated}
+              isCalibratingMode={isCalibrating}
+              onUnitChange={setUnit}
+              onCalibrateStart={() => setIsCalibrating(true)}
+              onCalibrateConfirm={() => setIsInputModalOpen(true)}
+              onCalibrateCancel={() => setIsCalibrating(false)}
+              onResetPoints={handleResetPoints}
+              onResetImage={handleResetImage}
+            />
+          </div>
+
+          {isInputModalOpen && (
+            <CalibrationModal
+              currentPixels={measurement.screenDistancePx}
+              onConfirm={handleCalibrationConfirm}
+              onCancel={() => {
+                setIsInputModalOpen(false);
+                setCalibrationError(null);
+              }}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;

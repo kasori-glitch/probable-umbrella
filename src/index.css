@@ -1,0 +1,188 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+  /* Colors */
+  --bg-color: #050505;
+  --bg-panel: rgba(20, 20, 20, 0.6);
+  --bg-panel-hover: rgba(30, 30, 30, 0.8);
+
+  --primary: #00f0ff;
+  /* Cyberpunk Cyan */
+  --primary-glow: rgba(0, 240, 255, 0.5);
+
+  --secondary: #ff003c;
+  /* Cyberpunk Red */
+
+  --text-main: #e0e0e0;
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --text-on-primary: #000000;
+
+  --error: #ff2a2a;
+  --success: #00ff9d;
+
+  /* Dimensions */
+  --header-height: 60px;
+  --control-panel-height: 140px;
+
+  /* Effects */
+  --glass-blur: blur(20px);
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 30px rgba(0, 240, 255, 0.1);
+
+  /* Font */
+  --font-family: 'Exo 2', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  overflow: hidden;
+  /* App-like feel */
+  user-select: none;
+  /* Prevent accidental text selection */
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Utilities */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  /* Safari */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn {
+  background: var(--bg-panel);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-main);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border: none;
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.btn-primary:active {
+  box-shadow: 0 0 5px var(--primary-glow);
+}
+
+.btn-icon {
+  padding: 12px;
+  border-radius: 50%;
+}
+
+input[type="number"] {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.2;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(15deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(10deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(15deg);
+  }
+}
+
+@keyframes float-reverse {
+  0% {
+    transform: translateY(0px) rotate(-15deg);
+  }
+
+  50% {
+    transform: translateY(-8px) rotate(-20deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(-15deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
