@@ -24,7 +24,7 @@ A high-precision, production-ready web application for measuring objects on your
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/measurement-tool.git
+   git clone https://github.com/kasori-glitch/probable-umbrella.git
    ```
 2. Install dependencies:
    ```bash
