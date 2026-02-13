@@ -78,8 +78,8 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
 
             if (img && img.complete) {
                 const { findBestSnapPoint } = await import('../lib/cvUtils');
-                // Use a larger ROI and sensitivity for more obvious effect
-                const snapPoint = await findBestSnapPoint(img, { x, y }, 60, 15);
+                // ROI: 30 (smaller search area), Sensitivity: 25 (only snap to very clear edges)
+                const snapPoint = await findBestSnapPoint(img, { x, y }, 30, 25);
                 if (snapPoint) {
                     finalX = snapPoint.x;
                     finalY = snapPoint.y;

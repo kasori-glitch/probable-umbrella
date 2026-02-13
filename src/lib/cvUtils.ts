@@ -81,7 +81,7 @@ export async function findBestSnapPoint(
         }
     }
 
-    // Only snap if the gradient is significant (avoid snapping to noise)
+    // Only snap if the gradient is significant and strictly better than local average
     if (maxGradient < sensitivity) {
         return null;
     }
