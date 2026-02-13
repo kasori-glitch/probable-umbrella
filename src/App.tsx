@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import './App.css';
 import { ImageWorkspace } from './components/ImageWorkspace';
 import { ControlPanel } from './components/ControlPanel';
@@ -18,9 +18,8 @@ import { Sidebar } from './components/Sidebar';
 import { logger } from './utils/logger';
 import { renderMeasurementToImage, downloadBlob, shareBlob } from './lib/exportUtils';
 import { App as CapApp } from '@capacitor/app';
-import { useEffect } from 'react';
 
-function App() {
+function MeasureApp() {
   // Handle Android Back Button
   useEffect(() => {
     CapApp.addListener('backButton', (data: { canGoBack: boolean }) => {
@@ -205,7 +204,7 @@ function App() {
                 onCalibrateCancel={() => setIsCalibrating(false)}
                 onResetPoints={handleResetPoints}
                 onResetImage={handleResetImage}
-                onExport={handleExport}
+                onExport={() => { handleExport(); }}
               />
             </div>
 
@@ -234,4 +233,4 @@ function App() {
   );
 }
 
-export default App;
+export default MeasureApp;

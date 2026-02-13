@@ -1,11 +1,4 @@
-/**
- * Computer Vision Utilities for Magnet-Snap (Edge Intelligence)
- */
-
-interface Point {
-    x: number;
-    y: number;
-}
+import type { Point } from '../types';
 
 /**
  * Finds the pixel with the highest contrast (gradient) in a small ROI around the point.
