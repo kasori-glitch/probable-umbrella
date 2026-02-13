@@ -12,6 +12,7 @@ import { useMeasurementPoints } from './hooks/useMeasurementPoints';
 import { useMeasurement } from './hooks/useMeasurement';
 import type { Unit, Dimensions, CalibrationInput } from './types';
 import { DEFAULTS } from './constants';
+import { Header } from './components/Header';
 import { logger } from './utils/logger';
 
 function App() {
@@ -98,6 +99,7 @@ function App() {
 
   return (
     <div className="app-container">
+      <Header />
       {/* Error alerts */}
       {imageUpload.error && (
         <ErrorAlert message={imageUpload.error} onDismiss={imageUpload.clearError} />

@@ -57,20 +57,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onImageSelect, onCalibra
                 }} />
             </div>
 
-            <div>
-                <h1 style={{
-                    fontSize: '4rem',
-                    margin: '0',
-                    background: 'linear-gradient(to right, var(--primary), #fff)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    letterSpacing: '-2px',
-                    fontFamily: '"Exo 2", sans-serif'
-                }}>
-                    MEASURE
-                </h1>
+            <div style={{ textAlign: 'center' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginTop: '8px', maxWidth: '400px', lineHeight: 1.5 }}>
-                    Precision On-Screen Tool
+                    Precision On-Screen Tool for high-accuracy reference measurements.
                 </p>
             </div>
 
