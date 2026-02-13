@@ -16,8 +16,9 @@ import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { OnboardingTutorial } from './components/OnboardingTutorial';
+import { ImagePreviewModal } from './components/ImagePreviewModal';
 import { logger } from './utils/logger';
-import { renderMeasurementToImage, downloadBlob, shareBlob, type ExportMeasurement } from './lib/exportUtils';
+import { renderMeasurementToImage, type ExportMeasurement } from './lib/exportUtils';
 import { App as CapApp } from '@capacitor/app';
 
 function MeasureApp() {
@@ -53,6 +54,7 @@ function MeasureApp() {
   const [showTutorial, setShowTutorial] = useState(() => {
     return localStorage.getItem('tutorial_completed') !== 'true';
   });
+  const [previewImage, setPreviewImage] = useState<{ blob: Blob; url: string } | null>(null);
 
   // Calculate measurements
   const measurement = useMeasurement(
@@ -143,7 +145,7 @@ function MeasureApp() {
     if (!imageUpload.imageSrc) return;
 
     try {
-      logger.info('Starting image download...');
+      logger.info('Generating image for preview...');
       const measurements = prepareExportData();
       const blob = await renderMeasurementToImage(imageUpload.imageSrc, measurements);
 
@@ -151,41 +153,15 @@ function MeasureApp() {
         throw new Error('Failed to render image');
       }
 
-      downloadBlob(blob, `measurement-${Date.now()}.png`);
-      logger.info('Image download triggered successfully');
+      setPreviewImage({ blob, url: URL.createObjectURL(blob) });
+      logger.info('Image preview opened');
     } catch (error) {
-      logger.error('Download failed', { error });
-      setCalibrationError('Failed to download image. Please try again.');
+      logger.error('Export failed', { error });
+      setCalibrationError('Failed to prepare image. Please try again.');
     }
   }, [imageUpload.imageSrc, prepareExportData]);
 
-  const handleShare = useCallback(async () => {
-    if (!imageUpload.imageSrc) return;
-
-    try {
-      logger.info('Starting image share...');
-      const measurements = prepareExportData();
-      const blob = await renderMeasurementToImage(imageUpload.imageSrc, measurements);
-
-      if (!blob) {
-        throw new Error('Failed to render image');
-      }
-
-      const fileName = `measurement-${Date.now()}.png`;
-      const shared = await shareBlob(blob, fileName);
-
-      if (shared) {
-        logger.info('Image shared successfully');
-      } else {
-        // Fallback to download if share isn't supported/available
-        downloadBlob(blob, fileName);
-        logger.info('Share unavailable, falling back to download');
-      }
-    } catch (error) {
-      logger.error('Share failed', { error });
-      setCalibrationError('Failed to share image. Please try again.');
-    }
-  }, [imageUpload.imageSrc, prepareExportData]);
+  const handleShare = handleDownload; // Both now open the preview modal for consistency on mobile
 
   return (
     <div className={`app-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
@@ -272,6 +248,17 @@ function MeasureApp() {
           onComplete={() => {
             setShowTutorial(false);
             localStorage.setItem('tutorial_completed', 'true');
+          }}
+        />
+      )}
+      {/* Image Preview / Save Modal */}
+      {previewImage && (
+        <ImagePreviewModal
+          imageUrl={previewImage.url}
+          imageBlob={previewImage.blob}
+          onClose={() => {
+            URL.revokeObjectURL(previewImage.url);
+            setPreviewImage(null);
           }}
         />
       )}
