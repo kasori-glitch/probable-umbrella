@@ -39,16 +39,66 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({
                     Enter the known real-world distance between points A and B.
                 </p>
 
-                <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+                    gap: '10px',
+                    marginBottom: '20px'
+                }}>
                     <button
                         className="btn"
                         type="button"
                         onClick={() => { setValue('8.56'); setUnit('cm'); }}
-                        style={{ flex: 1, fontSize: '13px', padding: '8px', background: 'rgba(255,255,255,0.1)' }}
+                        style={{
+                            fontSize: '12px',
+                            padding: '12px 8px',
+                            background: unit === 'cm' && value === '8.56' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
                     >
-                        💳 Credit Card
+                        <span style={{ fontSize: '20px' }}>💳</span>
+                        <span>Credit Card</span>
                     </button>
-                    {/* Add more presets here if needed */}
+                    <button
+                        className="btn"
+                        type="button"
+                        onClick={() => { setValue('2.58'); setUnit('cm'); }}
+                        style={{
+                            fontSize: '12px',
+                            padding: '12px 8px',
+                            background: unit === 'cm' && value === '2.58' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    >
+                        <span style={{ fontSize: '20px' }}>🪙</span>
+                        <span>2€ Coin</span>
+                    </button>
+                    <button
+                        className="btn"
+                        type="button"
+                        onClick={() => { setValue('0.95'); setUnit('inch'); }}
+                        style={{
+                            fontSize: '12px',
+                            padding: '12px 8px',
+                            background: unit === 'inch' && value === '0.95' ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '4px',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}
+                    >
+                        <span style={{ fontSize: '20px' }}>🇺🇸</span>
+                        <span>1$ Quarter</span>
+                    </button>
                 </div>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

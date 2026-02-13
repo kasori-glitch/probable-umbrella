@@ -20,7 +20,7 @@ export const Magnifier: React.FC<MagnifierProps> = ({
     y,
     parentWidth,
     parentHeight,
-    zoom = 2,
+    zoom = 3,
     size = 120
 }) => {
     // Calculate the dimensions of the zoomed image
@@ -43,7 +43,7 @@ export const Magnifier: React.FC<MagnifierProps> = ({
                 height: `${size}px`,
                 borderRadius: '50%',
                 border: '3px solid white',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.6)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.6), 0 0 10px var(--primary)',
                 overflow: 'hidden',
                 zIndex: 100,
                 backgroundColor: '#000',

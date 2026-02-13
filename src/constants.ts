@@ -56,6 +56,8 @@ export const STORAGE_KEYS = {
 export const CALIBRATION_PRESETS = {
     CREDIT_CARD_CM: 8.56,
     CREDIT_CARD_INCH: 3.37,
+    EUR_2_COIN_CM: 2.575,
+    USD_QUARTER_CM: 2.426,
 } as const;
 
 // Animation Durations
