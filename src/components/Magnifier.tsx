@@ -1,7 +1,8 @@
-import React from 'react';
+import type { Point } from '../types';
 
 interface MagnifierProps {
     imageSrc: string;
+    points: Point[];
     x: number; // Normalized 0-1
     y: number; // Normalized 0-1
     parentWidth: number; // Width of the displayed image in pixels
@@ -12,6 +13,7 @@ interface MagnifierProps {
 
 export const Magnifier: React.FC<MagnifierProps> = ({
     imageSrc,
+    points,
     x,
     y,
     parentWidth,
@@ -53,6 +55,41 @@ export const Magnifier: React.FC<MagnifierProps> = ({
             {/* Background Image is used for performance and pixel perfection. 
           The background position and size are calculated to show exactly the zoomed area.
       */}
+
+            {/* Other points markers */}
+            {points.map((point, index) => {
+                // Calculate position relative to the magnifier center
+                // point.x/y are 0-1 coordinates
+                const px = -x * zoomedWidth + point.x * zoomedWidth + size / 2;
+                const py = -y * zoomedHeight + point.y * zoomedHeight + size / 2;
+
+                // Only render if within the magnifier bounds
+                // size/2 is the radius
+                const dx = px - size / 2;
+                const dy = py - size / 2;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance > size / 2) return null;
+
+                return (
+                    <div
+                        key={index}
+                        style={{
+                            position: 'absolute',
+                            left: `${px}px`,
+                            top: `${py}px`,
+                            width: '4px',
+                            height: '4px',
+                            background: index === 0 ? 'var(--primary)' : 'var(--primary)', // Could use different colors if needed
+                            borderRadius: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            boxShadow: '0 0 2px black',
+                            border: '1px solid white',
+                            zIndex: 10
+                        }}
+                    />
+                );
+            })}
 
             {/* Crosshair inside magnifier */}
             <div style={{

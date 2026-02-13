@@ -177,6 +177,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                 {activePointIndex !== null && containerSize && (
                     <Magnifier
                         imageSrc={imageSrc}
+                        points={points}
                         x={points[activePointIndex].x}
                         y={points[activePointIndex].y}
                         parentWidth={containerSize.width}
