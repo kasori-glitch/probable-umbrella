@@ -55,8 +55,6 @@ export async function findBestSnapPoint(
     // Sobel-like simple gradient detection
     for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - 1; x++) {
-            const idx = (y * width + x) * 4;
-
             // Greyscale luminance: 0.299R + 0.587G + 0.114B
             const getLum = (ox: number, oy: number) => {
                 const i = ((y + oy) * width + (x + ox)) * 4;
