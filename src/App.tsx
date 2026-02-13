@@ -16,6 +16,7 @@ import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { logger } from './utils/logger';
+import { renderMeasurementToImage, downloadBlob, shareBlob } from './lib/exportUtils';
 import { App as CapApp } from '@capacitor/app';
 import { useEffect } from 'react';
 
@@ -118,6 +119,39 @@ function App() {
     setScreenDimensions({ width, height });
   }, []);
 
+  // Handle image export
+  const handleExport = useCallback(async () => {
+    if (!imageUpload.imageSrc) return;
+
+    try {
+      logger.info('Starting image export...');
+      const blob = await renderMeasurementToImage(
+        imageUpload.imageSrc,
+        measurementPoints.points,
+        measurement.displayValue,
+        unit
+      );
+
+      if (!blob) {
+        throw new Error('Failed to render image');
+      }
+
+      const fileName = `measurement-${Date.now()}.png`;
+
+      // Try to share first (mobile), fallback to download (desktop)
+      const shared = await shareBlob(blob, fileName);
+      if (!shared) {
+        downloadBlob(blob, fileName);
+        logger.info('Image downloaded successfully');
+      } else {
+        logger.info('Image shared successfully');
+      }
+    } catch (error) {
+      logger.error('Export failed', { error });
+      setCalibrationError('Failed to export image. Please try again.');
+    }
+  }, [imageUpload.imageSrc, measurementPoints.points, measurement.displayValue, unit]);
+
   return (
     <div className={`app-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
       <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
@@ -171,6 +205,7 @@ function App() {
                 onCalibrateCancel={() => setIsCalibrating(false)}
                 onResetPoints={handleResetPoints}
                 onResetImage={handleResetImage}
+                onExport={handleExport}
               />
             </div>
 

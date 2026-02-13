@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image as ImageIcon, RotateCcw, Ruler } from 'lucide-react'; // Import icons
+import { Image as ImageIcon, RotateCcw, Ruler, Share2 } from 'lucide-react'; // Import icons
 import type { Unit } from '../types';
 
 interface ControlPanelProps {
@@ -13,6 +13,7 @@ interface ControlPanelProps {
     onCalibrateCancel: () => void;
     onResetPoints: () => void;
     onResetImage: () => void;
+    onExport: () => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -25,7 +26,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     onCalibrateConfirm,
     onCalibrateCancel,
     onResetPoints,
-    onResetImage
+    onResetImage,
+    onExport
 }) => {
     // Conditional rendering for calibration mode
     if (isCalibratingMode) {
@@ -177,7 +179,24 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     }}
                 >
                     <ImageIcon size={16} />
-                    New Image
+                    New
+                </button>
+                <button
+                    className="btn btn-primary"
+                    onClick={onExport}
+                    title="Export & Share"
+                    style={{
+                        flex: 1.5,
+                        fontSize: '0.9rem',
+                        padding: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                    }}
+                >
+                    <Share2 size={16} />
+                    Export
                 </button>
             </div>
         </div>
