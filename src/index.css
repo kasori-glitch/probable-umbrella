@@ -176,6 +176,37 @@ input[type="number"]:focus {
   }
 }
 
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 100%;
+    --header-height: 60px;
+  }
+
+  .workspace-layout {
+    flex-direction: column !important;
+  }
+
+  aside.glass-panel {
+    width: 100% !important;
+    height: auto !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(0, 240, 255, 0.2) !important;
+    padding: 16px !important;
+    padding-bottom: 30px !important;
+  }
+
+  .btn {
+    min-height: 52px;
+    /* Better touch targets for mobile */
+    font-size: 1rem !important;
+  }
+
+  .header-text-animated {
+    font-size: 1rem !important;
+  }
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;
