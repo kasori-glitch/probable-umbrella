@@ -166,7 +166,7 @@ export async function shareBlob(blob: Blob, fileName: string): Promise<boolean> 
             return true;
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
-                logger.error('Error sharing image', { error });
+                logger.error('Error sharing image', { error: error as Error });
             }
             return false;
         }
