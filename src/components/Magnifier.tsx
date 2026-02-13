@@ -78,16 +78,35 @@ export const Magnifier: React.FC<MagnifierProps> = ({
                             position: 'absolute',
                             left: `${px}px`,
                             top: `${py}px`,
-                            width: '4px',
-                            height: '4px',
-                            background: index === 0 ? 'var(--primary)' : 'var(--primary)', // Could use different colors if needed
-                            borderRadius: '50%',
+                            width: '10px',
+                            height: '10px',
                             transform: 'translate(-50%, -50%)',
-                            boxShadow: '0 0 2px black',
-                            border: '1px solid white',
+                            pointerEvents: 'none',
                             zIndex: 10
                         }}
-                    />
+                    >
+                        {/* Red Plus Sign */}
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            width: '100%',
+                            height: '2px',
+                            background: '#ff0000',
+                            transform: 'translate(-50%, -50%)',
+                            boxShadow: '0 0 2px black'
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            width: '2px',
+                            height: '100%',
+                            background: '#ff0000',
+                            transform: 'translate(-50%, -50%)',
+                            boxShadow: '0 0 2px black'
+                        }} />
+                    </div>
                 );
             })}
 
