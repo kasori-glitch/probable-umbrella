@@ -16,7 +16,7 @@ import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { logger } from './utils/logger';
-import { renderMeasurementToImage, downloadBlob, shareBlob } from './lib/exportUtils';
+import { renderMeasurementToImage, downloadBlob, shareBlob, type ExportMeasurement } from './lib/exportUtils';
 import { App as CapApp } from '@capacitor/app';
 
 function MeasureApp() {
@@ -118,38 +118,70 @@ function MeasureApp() {
     setScreenDimensions({ width, height });
   }, []);
 
-  // Handle image export
-  const handleExport = useCallback(async () => {
+  // Handle image export/download
+  const prepareExportData = useCallback((): ExportMeasurement[] => {
+    const current: ExportMeasurement = {
+      points: measurementPoints.points,
+      value: measurement.displayValue,
+      unit: unit
+    };
+
+    const saved: ExportMeasurement[] = savedMeasurements.savedMeasurements.map(sm => ({
+      points: sm.points,
+      value: sm.value,
+      unit: sm.unit
+    }));
+
+    return [current, ...saved];
+  }, [measurementPoints.points, measurement.displayValue, unit, savedMeasurements.savedMeasurements]);
+
+  const handleDownload = useCallback(async () => {
     if (!imageUpload.imageSrc) return;
 
     try {
-      logger.info('Starting image export...');
-      const blob = await renderMeasurementToImage(
-        imageUpload.imageSrc,
-        measurementPoints.points,
-        measurement.displayValue,
-        unit
-      );
+      logger.info('Starting image download...');
+      const measurements = prepareExportData();
+      const blob = await renderMeasurementToImage(imageUpload.imageSrc, measurements);
+
+      if (!blob) {
+        throw new Error('Failed to render image');
+      }
+
+      downloadBlob(blob, `measurement-${Date.now()}.png`);
+      logger.info('Image download triggered successfully');
+    } catch (error) {
+      logger.error('Download failed', { error });
+      setCalibrationError('Failed to download image. Please try again.');
+    }
+  }, [imageUpload.imageSrc, prepareExportData]);
+
+  const handleShare = useCallback(async () => {
+    if (!imageUpload.imageSrc) return;
+
+    try {
+      logger.info('Starting image share...');
+      const measurements = prepareExportData();
+      const blob = await renderMeasurementToImage(imageUpload.imageSrc, measurements);
 
       if (!blob) {
         throw new Error('Failed to render image');
       }
 
       const fileName = `measurement-${Date.now()}.png`;
-
-      // Try to share first (mobile), fallback to download (desktop)
       const shared = await shareBlob(blob, fileName);
-      if (!shared) {
-        downloadBlob(blob, fileName);
-        logger.info('Image downloaded successfully');
-      } else {
+
+      if (shared) {
         logger.info('Image shared successfully');
+      } else {
+        // Fallback to download if share isn't supported/available
+        downloadBlob(blob, fileName);
+        logger.info('Share unavailable, falling back to download');
       }
     } catch (error) {
-      logger.error('Export failed', { error });
-      setCalibrationError('Failed to export image. Please try again.');
+      logger.error('Share failed', { error });
+      setCalibrationError('Failed to share image. Please try again.');
     }
-  }, [imageUpload.imageSrc, measurementPoints.points, measurement.displayValue, unit]);
+  }, [imageUpload.imageSrc, prepareExportData]);
 
   return (
     <div className={`app-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
@@ -204,7 +236,8 @@ function MeasureApp() {
                 onCalibrateCancel={() => setIsCalibrating(false)}
                 onResetPoints={handleResetPoints}
                 onResetImage={handleResetImage}
-                onExport={() => { handleExport(); }}
+                onExport={handleShare}
+                onDownload={handleDownload}
               />
             </div>
 

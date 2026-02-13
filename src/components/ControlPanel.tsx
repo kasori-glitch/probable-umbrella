@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image as ImageIcon, RotateCcw, Ruler, Share2 } from 'lucide-react'; // Import icons
+import { Image as ImageIcon, RotateCcw, Ruler, Share2, Download } from 'lucide-react'; // Import icons
 import type { Unit } from '../types';
 
 interface ControlPanelProps {
@@ -14,6 +14,7 @@ interface ControlPanelProps {
     onResetPoints: () => void;
     onResetImage: () => void;
     onExport: () => void;
+    onDownload: () => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -27,7 +28,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     onCalibrateCancel,
     onResetPoints,
     onResetImage,
-    onExport
+    onExport,
+    onDownload
 }) => {
     // Conditional rendering for calibration mode
     if (isCalibratingMode) {
@@ -183,20 +185,40 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 </button>
                 <button
                     className="btn btn-primary"
-                    onClick={onExport}
-                    title="Export & Share"
+                    onClick={onDownload}
+                    title="Download to Device"
                     style={{
-                        flex: 1.5,
-                        fontSize: '0.9rem',
-                        padding: '12px',
+                        flex: 1,
+                        fontSize: '0.85rem',
+                        padding: '12px 8px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '6px'
+                        gap: '4px'
+                    }}
+                >
+                    <Download size={16} />
+                    Save
+                </button>
+                <button
+                    className="btn"
+                    onClick={onExport}
+                    title="Share Overlay"
+                    style={{
+                        flex: 1,
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        borderColor: 'var(--primary)',
+                        color: 'var(--primary)',
+                        fontSize: '0.85rem',
+                        padding: '12px 8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px'
                     }}
                 >
                     <Share2 size={16} />
-                    Export
+                    Share
                 </button>
             </div>
         </div>
