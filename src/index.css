@@ -186,7 +186,7 @@ input[type="number"]:focus {
 }
 
 /* Mobile responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   :root {
     --sidebar-width: 100%;
     --header-height: 60px;
@@ -213,6 +213,28 @@ input[type="number"]:focus {
 
   .header-text-animated {
     font-size: 1rem !important;
+  }
+}
+
+/* Landscape Mode Adjustments for Mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --header-height: 50px;
+    --sidebar-width: 200px;
+  }
+
+  .workspace-layout {
+    flex-direction: row !important;
+  }
+
+  aside.glass-panel {
+    width: var(--sidebar-width) !important;
+    height: 100% !important;
+    padding: 12px !important;
+  }
+
+  .header-text-animated {
+    font-size: 0.9rem !important;
   }
 }
 

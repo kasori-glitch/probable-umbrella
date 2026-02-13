@@ -50,6 +50,7 @@ export const MAGNIFIER = {
 // LocalStorage Keys
 export const STORAGE_KEYS = {
     CALIBRATION: 'measure-app-calibration',
+    SAVED_MEASUREMENTS: 'measure-app-saved-measurements',
 } as const;
 
 // Calibration Presets

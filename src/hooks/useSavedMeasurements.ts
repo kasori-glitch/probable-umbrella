@@ -1,9 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Point, Unit, SavedMeasurement } from '../types';
 import { logger } from '../utils/logger';
+import { STORAGE_KEYS } from '../constants';
+import { getStorageItem, setStorageItem } from '../utils/storage';
 
 export function useSavedMeasurements() {
-    const [savedMeasurements, setSavedMeasurements] = useState<SavedMeasurement[]>([]);
+    const [savedMeasurements, setSavedMeasurements] = useState<SavedMeasurement[]>(() => {
+        return getStorageItem(STORAGE_KEYS.SAVED_MEASUREMENTS, []);
+    });
+
+    // Persist to storage whenever measurements change
+    useEffect(() => {
+        setStorageItem(STORAGE_KEYS.SAVED_MEASUREMENTS, savedMeasurements);
+    }, [savedMeasurements]);
 
     const saveMeasurement = useCallback((points: [Point, Point], value: number, unit: Unit) => {
         setSavedMeasurements(prev => {

@@ -33,7 +33,13 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({
             alignItems: 'center',
             justifyContent: 'center'
         }}>
-            <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '400px' }}>
+            <div className="glass-panel" style={{
+                padding: '30px',
+                width: '90%',
+                maxWidth: '400px',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+            }}>
                 <h2 style={{ marginTop: 0 }}>Calibrate Scale</h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: '1.4' }}>
                     1. Align <b>Point A and B</b> with the edges of a reference object <b>in your photo</b>.<br />
