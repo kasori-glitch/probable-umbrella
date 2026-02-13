@@ -1,4 +1,4 @@
-import { Point, Unit } from '../types';
+import type { Point, Unit } from '../types';
 import { logger } from '../utils/logger';
 
 /**
@@ -40,7 +40,6 @@ export async function renderMeasurementToImage(
 
             // Styles for the measurement line
             const primaryColor = '#00f0ff'; // Cyberpunk Cyan
-            const secondaryColor = '#000000';
 
             // Draw dark shadow for better visibility on any background
             ctx.shadowBlur = 10;
@@ -164,7 +163,7 @@ export async function shareBlob(blob: Blob, fileName: string): Promise<boolean> 
             return true;
         } catch (error) {
             if ((error as Error).name !== 'AbortError') {
-                logger.error('Error sharing image', error);
+                logger.error('Error sharing image', { error });
             }
             return false;
         }
