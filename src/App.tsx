@@ -16,8 +16,25 @@ import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { logger } from './utils/logger';
+import { App as CapApp } from '@capacitor/app';
+import { useEffect } from 'react';
 
 function App() {
+  // Handle Android Back Button
+  useEffect(() => {
+    CapApp.addListener('backButton', (data: { canGoBack: boolean }) => {
+      if (!data.canGoBack) {
+        CapApp.exitApp();
+      } else {
+        window.history.back();
+      }
+    });
+
+    return () => {
+      CapApp.removeAllListeners();
+    };
+  }, []);
+
   // Custom hooks for state management
   const calibration = useCalibration();
   const imageUpload = useImageUpload();

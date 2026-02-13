@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">On Screen Mesure</string>
+    <string name="title_activity_main">On Screen Mesure</string>
+    <string name="package_name">com.onscreenmesure.app</string>
+    <string name="custom_url_scheme">com.onscreenmesure.app</string>
+</resources>
