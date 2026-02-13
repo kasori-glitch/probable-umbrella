@@ -55,22 +55,33 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         // RAF ID scoped within this effect to prevent memory leaks
         let animationFrameId: number | null = null;
 
-        const handlePointerMove = (e: PointerEvent) => {
+        const handlePointerMove = async (e: PointerEvent) => {
             if (!containerRef.current) return;
 
-            // We use getBoundingClientRect inside the event for 100% accuracy of touch position vs element
             const rect = containerRef.current.getBoundingClientRect();
+            const img = containerRef.current.querySelector('img');
 
-            // Calculate normalized coordinates
             let x = (e.clientX - rect.left) / rect.width;
             let y = (e.clientY - rect.top) / rect.height;
 
-            // Clamp to 0-1
             x = Math.max(0, Math.min(1, x));
             y = Math.max(0, Math.min(1, y));
 
+            // Magnet-Snap Logic
+            let finalX = x;
+            let finalY = y;
+
+            if (img && img.complete) {
+                const { findBestSnapPoint } = await import('../lib/cvUtils');
+                const snapPoint = await findBestSnapPoint(img, { x, y });
+                if (snapPoint) {
+                    finalX = snapPoint.x;
+                    finalY = snapPoint.y;
+                }
+            }
+
             const newPoints = [...points] as [Point, Point];
-            newPoints[activePointIndex] = { x, y };
+            newPoints[activePointIndex] = { x: finalX, y: finalY };
 
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
