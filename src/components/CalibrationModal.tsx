@@ -35,8 +35,9 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({
         }}>
             <div className="glass-panel" style={{ padding: '30px', width: '90%', maxWidth: '400px' }}>
                 <h2 style={{ marginTop: 0 }}>Calibrate Scale</h2>
-                <p style={{ color: 'var(--text-muted)' }}>
-                    Enter the known real-world distance between points A and B.
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px', lineHeight: '1.4' }}>
+                    1. Align <b>Point A and B</b> with the edges of a reference object <b>in your photo</b>.<br />
+                    2. Select that object from the library below or enter its length manually.
                 </p>
 
                 <div style={{
