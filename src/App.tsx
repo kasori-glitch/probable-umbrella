@@ -15,6 +15,7 @@ import type { Unit, Dimensions, CalibrationInput } from './types';
 import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
+import { OnboardingTutorial } from './components/OnboardingTutorial';
 import { logger } from './utils/logger';
 import { renderMeasurementToImage, downloadBlob, shareBlob, type ExportMeasurement } from './lib/exportUtils';
 import { App as CapApp } from '@capacitor/app';
@@ -49,6 +50,9 @@ function MeasureApp() {
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [calibrationError, setCalibrationError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    return localStorage.getItem('tutorial_completed') !== 'true';
+  });
 
   // Calculate measurements
   const measurement = useMeasurement(
@@ -261,6 +265,15 @@ function MeasureApp() {
             onRenameMeasurement={savedMeasurements.renameMeasurement}
           />
         </div>
+      )}
+      {/* Onboarding Tutorial Overlay */}
+      {showTutorial && (
+        <OnboardingTutorial
+          onComplete={() => {
+            setShowTutorial(false);
+            localStorage.setItem('tutorial_completed', 'true');
+          }}
+        />
       )}
     </div>
   );
