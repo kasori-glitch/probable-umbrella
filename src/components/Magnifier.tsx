@@ -3,6 +3,7 @@ import type { Point } from '../types';
 interface MagnifierProps {
     imageSrc: string;
     points: Point[];
+    activeIndex: number | null;
     x: number; // Normalized 0-1
     y: number; // Normalized 0-1
     parentWidth: number; // Width of the displayed image in pixels
@@ -14,6 +15,7 @@ interface MagnifierProps {
 export const Magnifier: React.FC<MagnifierProps> = ({
     imageSrc,
     points,
+    activeIndex,
     x,
     y,
     parentWidth,
@@ -58,6 +60,9 @@ export const Magnifier: React.FC<MagnifierProps> = ({
 
             {/* Other points markers */}
             {points.map((point, index) => {
+                // Don't show the point we are currently dragging because it overlaps with the magnifier crosshair
+                if (index === activeIndex) return null;
+
                 // Calculate position relative to the magnifier center
                 // point.x/y are 0-1 coordinates
                 const px = -x * zoomedWidth + point.x * zoomedWidth + size / 2;
