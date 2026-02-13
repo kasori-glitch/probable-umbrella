@@ -25,7 +25,6 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
     const [containerSize, setContainerSize] = useState<{ width: number, height: number } | null>(null);
-    const [snappingIndices, setSnappingIndices] = useState<Set<number>>(new Set());
 
     // Track container size for Magnifier AND Parent App
     useEffect(() => {
@@ -48,10 +47,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
 
     // Handle Dragging
     useEffect(() => {
-        if (activePointIndex === null) {
-            setSnappingIndices(new Set());
-            return;
-        }
+        if (activePointIndex === null) return;
 
         // Notify drag start
         onDragStart?.();
@@ -74,7 +70,6 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             // Magnet-Snap Logic
             let finalX = x;
             let finalY = y;
-            let isSnapping = false;
 
             if (img && img.complete) {
                 const { findBestSnapPoint } = await import('../lib/cvUtils');
@@ -83,17 +78,8 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                 if (snapPoint) {
                     finalX = snapPoint.x;
                     finalY = snapPoint.y;
-                    isSnapping = true;
                 }
             }
-
-            // Update snapping state
-            setSnappingIndices((prev: Set<number>) => {
-                const next = new Set(prev);
-                if (isSnapping) next.add(activePointIndex);
-                else next.delete(activePointIndex);
-                return next;
-            });
 
             const newPoints = [...points] as [Point, Point];
             newPoints[activePointIndex] = { x: finalX, y: finalY };
@@ -108,7 +94,6 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
 
         const handlePointerUp = () => {
             setActivePointIndex(null);
-            setSnappingIndices(new Set());
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
             }
@@ -220,7 +205,6 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                     label="A"
                     color="var(--primary)"
                     isActive={activePointIndex === 0}
-                    isSnapping={snappingIndices.has(0)}
                     onPointerDown={(e) => {
                         e.stopPropagation(); // Prevent triggering other things
                         setActivePointIndex(0);
@@ -232,7 +216,6 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                     label="B"
                     color="var(--primary)"
                     isActive={activePointIndex === 1}
-                    isSnapping={snappingIndices.has(1)}
                     onPointerDown={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

@@ -6,7 +6,6 @@ interface MeasurementPointProps {
     label: string;
     color: string;
     isActive?: boolean;
-    isSnapping?: boolean;
     onPointerDown: (e: React.PointerEvent) => void;
 }
 
@@ -16,12 +15,11 @@ export const MeasurementPoint: React.FC<MeasurementPointProps> = ({
     label,
     color,
     isActive,
-    isSnapping,
     onPointerDown
 }) => {
     return (
         <div
-            className={`measurement-point ${isSnapping ? 'point-snapping' : ''}`}
+            className="measurement-point"
             onPointerDown={onPointerDown}
             style={{
                 position: 'absolute',

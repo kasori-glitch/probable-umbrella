@@ -105,27 +105,6 @@ body {
   filter: brightness(1.2);
 }
 
-.point-snapping {
-  animation: snapPulse 0.4s ease-out;
-}
-
-@keyframes snapPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 var(--primary);
-  }
-
-  50% {
-    transform: scale(1.5);
-    box-shadow: 0 0 20px 10px var(--primary);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 transparent;
-  }
-}
-
 .btn-primary:active {
   box-shadow: 0 0 5px var(--primary-glow);
 }
