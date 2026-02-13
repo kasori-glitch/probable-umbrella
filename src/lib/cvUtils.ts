@@ -48,9 +48,12 @@ export async function findBestSnapPoint(
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
 
-    let maxGradient = -1;
+    let maxScore = -1;
     let bestX = roiSize / 2;
     let bestY = roiSize / 2;
+
+    const centerX = width / 2;
+    const centerY = height / 2;
 
     // Sobel-like simple gradient detection
     for (let y = 1; y < height - 1; y++) {
@@ -73,16 +76,27 @@ export async function findBestSnapPoint(
 
             const gradient = Math.sqrt(gx * gx + gy * gy);
 
-            if (gradient > maxGradient) {
-                maxGradient = gradient;
+            // DISTANCE WEIGHTING: 
+            // We want to favor edges closer to the actual cursor.
+            // Score = Gradient / (Distance + k)
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // The constant 5 here controls how much distance "matters"
+            const score = gradient / (distance + 5);
+
+            if (score > maxScore) {
+                maxScore = score;
                 bestX = x;
                 bestY = y;
             }
         }
     }
 
-    // Only snap if the gradient is significant and strictly better than local average
-    if (maxGradient < sensitivity) {
+    // Only snap if the score is significant
+    // Sensitivity now acts on the weighted score
+    if (maxScore < sensitivity / 5) {
         return null;
     }
 
