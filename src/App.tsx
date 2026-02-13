@@ -14,6 +14,7 @@ import { useMeasurement } from './hooks/useMeasurement';
 import type { Unit, Dimensions, CalibrationInput } from './types';
 import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
+import { Sidebar } from './components/Sidebar';
 import { logger } from './utils/logger';
 
 function App() {
@@ -120,55 +121,60 @@ function App() {
           onCalibrateSelect={(file) => handleFileLoad(file, true)}
         />
       ) : (
-        <div className="workspace" style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-            <ImageWorkspace
-              imageSrc={imageUpload.imageSrc}
-              points={measurementPoints.points}
-              onPointsChange={measurementPoints.setPoints}
-              onDimensionsChange={handleDimensionsChange}
-              onDragStart={() => setIsDraggingPoints(true)}
-              onDragEnd={() => setIsDraggingPoints(false)}
-            />
-          </div>
+        <div className="workspace-layout" style={{ display: 'flex', flex: 1, height: 'calc(100vh - var(--header-height))', overflow: 'hidden' }}>
+          <div className="workspace" style={{ position: 'relative', flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+              <ImageWorkspace
+                imageSrc={imageUpload.imageSrc}
+                points={measurementPoints.points}
+                onPointsChange={measurementPoints.setPoints}
+                onDimensionsChange={handleDimensionsChange}
+                onDragStart={() => setIsDraggingPoints(true)}
+                onDragEnd={() => setIsDraggingPoints(false)}
+              />
+            </div>
 
-          <div
-            className={isDraggingPoints ? 'control-panel-hidden' : ''}
-            style={{
-              opacity: isDraggingPoints ? 0 : 1,
-              pointerEvents: isDraggingPoints ? 'none' : 'auto',
-              transition: 'opacity 0.2s ease-in-out'
-            }}
-          >
-            <ControlPanel
-              distance={measurement.displayValue}
-              unit={unit}
-              isCalibrated={calibration.isCalibrated}
-              isCalibratingMode={isCalibrating}
-              savedMeasurements={savedMeasurements.savedMeasurements}
-              canSave={savedMeasurements.canSave}
-              onSaveMeasurement={() => savedMeasurements.saveMeasurement(measurementPoints.points, measurement.displayValue, unit)}
-              onDeleteMeasurement={savedMeasurements.deleteMeasurement}
-              onRenameMeasurement={savedMeasurements.renameMeasurement}
-              onUnitChange={setUnit}
-              onCalibrateStart={() => setIsCalibrating(true)}
-              onCalibrateConfirm={() => setIsInputModalOpen(true)}
-              onCalibrateCancel={() => setIsCalibrating(false)}
-              onResetPoints={handleResetPoints}
-              onResetImage={handleResetImage}
-            />
-          </div>
-
-          {isInputModalOpen && (
-            <CalibrationModal
-              currentPixels={measurement.screenDistancePx}
-              onConfirm={handleCalibrationConfirm}
-              onCancel={() => {
-                setIsInputModalOpen(false);
-                setCalibrationError(null);
+            <div
+              className={isDraggingPoints ? 'control-panel-hidden' : ''}
+              style={{
+                opacity: isDraggingPoints ? 0 : 1,
+                pointerEvents: isDraggingPoints ? 'none' : 'auto',
+                transition: 'opacity 0.2s ease-in-out'
               }}
-            />
-          )}
+            >
+              <ControlPanel
+                distance={measurement.displayValue}
+                unit={unit}
+                isCalibrated={calibration.isCalibrated}
+                isCalibratingMode={isCalibrating}
+                onUnitChange={setUnit}
+                onCalibrateStart={() => setIsCalibrating(true)}
+                onCalibrateConfirm={() => setIsInputModalOpen(true)}
+                onCalibrateCancel={() => setIsCalibrating(false)}
+                onResetPoints={handleResetPoints}
+                onResetImage={handleResetImage}
+              />
+            </div>
+
+            {isInputModalOpen && (
+              <CalibrationModal
+                currentPixels={measurement.screenDistancePx}
+                onConfirm={handleCalibrationConfirm}
+                onCancel={() => {
+                  setIsInputModalOpen(false);
+                  setCalibrationError(null);
+                }}
+              />
+            )}
+          </div>
+
+          <Sidebar
+            savedMeasurements={savedMeasurements.savedMeasurements}
+            canSave={savedMeasurements.canSave}
+            onSaveMeasurement={() => savedMeasurements.saveMeasurement(measurementPoints.points, measurement.displayValue, unit)}
+            onDeleteMeasurement={savedMeasurements.deleteMeasurement}
+            onRenameMeasurement={savedMeasurements.renameMeasurement}
+          />
         </div>
       )}
     </div>

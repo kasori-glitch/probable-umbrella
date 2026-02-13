@@ -23,6 +23,7 @@
   /* Dimensions */
   --header-height: 70px;
   --control-panel-height: 160px;
+  --sidebar-width: 250px;
 
   /* Effects */
   --glass-blur: blur(20px);
