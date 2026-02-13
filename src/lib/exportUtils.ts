@@ -1,3 +1,6 @@
+/**
+ * Export Utilities for Image Rendering and Sharing
+ */
 import type { Point, Unit } from '../types';
 import { logger } from '../utils/logger';
 
