@@ -1,6 +1,6 @@
 import React from 'react';
 import { Trash2, Save } from 'lucide-react';
-import type { Unit, SavedMeasurement } from '../types';
+import type { SavedMeasurement } from '../types';
 
 interface SidebarProps {
     savedMeasurements: SavedMeasurement[];
