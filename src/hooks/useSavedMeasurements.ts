@@ -21,8 +21,9 @@ export function useSavedMeasurements() {
                 return prev;
             }
 
+            const newId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             const newMeasurement: SavedMeasurement = {
-                id: crypto.randomUUID(),
+                id: newId,
                 name: `mesure${prev.length + 1}`,
                 points: [...points],
                 value,

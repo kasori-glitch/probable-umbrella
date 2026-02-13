@@ -1,7 +1,12 @@
 import React from 'react';
-import { Target } from 'lucide-react';
+import { Target, History, X } from 'lucide-react';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+    onToggleSidebar?: () => void;
+    isSidebarOpen?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }) => {
     return (
         <header style={{
             height: 'var(--header-height)',
@@ -33,7 +38,6 @@ export const Header: React.FC = () => {
                     }}
                 >
                     <Target size={16} color="var(--primary)" />
-                    {/* Small inner crosshair logic if needed, but Target icon works well */}
                 </div>
 
                 <h1
@@ -55,8 +59,32 @@ export const Header: React.FC = () => {
                 </h1>
             </div>
 
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                v1.0.0
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <button
+                    className="mobile-only sidebar-toggle-btn"
+                    onClick={onToggleSidebar}
+                    style={{
+                        background: isSidebarOpen ? 'var(--primary)' : 'rgba(255,255,255,0.05)',
+                        border: '1px solid var(--primary)',
+                        color: isSidebarOpen ? '#000' : 'var(--primary)',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        display: 'none', // Shown via CSS on mobile
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                    }}
+                >
+                    {isSidebarOpen ? <X size={16} /> : <History size={16} />}
+                    {isSidebarOpen ? 'CLOSE' : 'HISTORY'}
+                </button>
+
+                <div className="desktop-only" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                    v1.0.0
+                </div>
             </div>
         </header>
     );

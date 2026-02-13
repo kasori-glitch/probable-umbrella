@@ -48,6 +48,7 @@ function App() {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [calibrationError, setCalibrationError] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Calculate measurements
   const measurement = useMeasurement(
@@ -118,8 +119,8 @@ function App() {
   }, []);
 
   return (
-    <div className="app-container">
-      <Header />
+    <div className={`app-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+      <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
       {/* Error alerts */}
       {imageUpload.error && (
         <ErrorAlert message={imageUpload.error} onDismiss={imageUpload.clearError} />
