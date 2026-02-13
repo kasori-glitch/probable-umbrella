@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, Share2, Info } from 'lucide-react';
 import { downloadBlob, shareBlob } from '../lib/exportUtils';
 
@@ -13,7 +13,19 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     imageBlob,
     onClose
 }) => {
+    const [dataUrl, setDataUrl] = useState<string>(imageUrl);
     const fileName = `measurement-${Date.now()}.png`;
+
+    useEffect(() => {
+        // Convert Blob to Data URL for better mobile "Save Image" compatibility
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (typeof reader.result === 'string') {
+                setDataUrl(reader.result);
+            }
+        };
+        reader.readAsDataURL(imageBlob);
+    }, [imageBlob]);
 
     const handleDownload = () => {
         downloadBlob(imageBlob, fileName);
@@ -24,7 +36,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     };
 
     return (
-        <div className="preview-overlay" style={{
+        <div className="preview-overlay allow-select" style={{
             position: 'fixed',
             inset: 0,
             zIndex: 2000,
@@ -91,8 +103,9 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 background: '#000'
             }}>
                 <img
-                    src={imageUrl}
+                    src={dataUrl}
                     alt="Measurement Preview"
+                    className="selectable-image"
                     style={{
                         maxWidth: '100%',
                         maxHeight: '100%',
@@ -108,7 +121,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 width: '100%',
                 maxWidth: '400px',
                 marginTop: '24px'
-            }}>
+            }} className="allow-select">
                 <button
                     className="btn btn-primary"
                     onClick={handleDownload}

@@ -481,3 +481,17 @@ input[type="number"]:focus {
 .tutorial-footer .btn {
   min-width: 110px;
 }
+
+/* Mobile Compatibility Overrides */
+.allow-select {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  -webkit-touch-callout: default !important;
+}
+
+.selectable-image {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  -webkit-touch-callout: default !important;
+  pointer-events: auto !important;
+}
