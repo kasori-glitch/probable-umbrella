@@ -11,8 +11,13 @@ interface ControlPanelProps {
     onCalibrateStart: () => void; // Renamed from onCalibrate
     onCalibrateConfirm: () => void; // New handler for proceeding to input
     onCalibrateCancel: () => void;
-    onResetPoints: () => void; // New prop
+    onResetPoints: () => void;
     onResetImage: () => void;
+    savedMeasurements: any[]; // Using any for now to avoid circular dependency or complex types in this file
+    canSave: boolean;
+    onSaveMeasurement: () => void;
+    onDeleteMeasurement: (id: string) => void;
+    onRenameMeasurement: (id: string, name: string) => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -25,7 +30,12 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     onCalibrateConfirm,
     onCalibrateCancel,
     onResetPoints,
-    onResetImage
+    onResetImage,
+    savedMeasurements,
+    canSave,
+    onSaveMeasurement,
+    onDeleteMeasurement,
+    onRenameMeasurement
 }) => {
     // Conditional rendering for calibration mode
     if (isCalibratingMode) {
@@ -126,7 +136,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     width: '100%',
                     padding: '16px',
                     fontSize: '1.1rem',
-                    // Red if uncalibrated, Green if calibrated
                     backgroundColor: isCalibrated ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
                     borderColor: isCalibrated ? '#2ecc71' : '#e74c3c',
                     color: isCalibrated ? '#2ecc71' : '#e74c3c',
@@ -140,6 +149,68 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <Ruler size={18} />
                 {isCalibrated ? 'Calibrated (Click to Adjust)' : '⚠ Calibration Required'}
             </button>
+
+            {/* Save Measurement Section */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <button
+                    className="btn btn-primary"
+                    disabled={!canSave}
+                    onClick={onSaveMeasurement}
+                    style={{
+                        width: '100%',
+                        opacity: canSave ? 1 : 0.5,
+                        cursor: canSave ? 'pointer' : 'not-allowed'
+                    }}
+                >
+                    Save Measurement ({savedMeasurements.length}/3)
+                </button>
+
+                {/* Saved list */}
+                {savedMeasurements.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
+                        {savedMeasurements.map((m) => (
+                            <div key={m.id} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                background: 'rgba(255,255,255,0.05)',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(255,255,255,0.1)'
+                            }}>
+                                <input
+                                    type="text"
+                                    value={m.name}
+                                    onChange={(e) => onRenameMeasurement(m.id, e.target.value)}
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--primary)',
+                                        fontWeight: 600,
+                                        width: '100px',
+                                        fontSize: '0.9rem'
+                                    }}
+                                />
+                                <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+                                    {m.value.toFixed(2)} {m.unit}
+                                </span>
+                                <button
+                                    onClick={() => onDeleteMeasurement(m.id)}
+                                    style={{
+                                        background: 'transparent',
+                                        border: 'none',
+                                        color: 'var(--secondary)',
+                                        cursor: 'pointer',
+                                        fontSize: '0.8rem'
+                                    }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             {/* Bottom Row: Reset Actions */}
             <div style={{ display: 'flex', gap: '12px' }}>

@@ -9,6 +9,7 @@ import { LoadingSpinner } from './components/LoadingSpinner';
 import { useCalibration } from './hooks/useCalibration';
 import { useImageUpload } from './hooks/useImageUpload';
 import { useMeasurementPoints } from './hooks/useMeasurementPoints';
+import { useSavedMeasurements } from './hooks/useSavedMeasurements';
 import { useMeasurement } from './hooks/useMeasurement';
 import type { Unit, Dimensions, CalibrationInput } from './types';
 import { DEFAULTS } from './constants';
@@ -20,6 +21,7 @@ function App() {
   const calibration = useCalibration();
   const imageUpload = useImageUpload();
   const measurementPoints = useMeasurementPoints();
+  const savedMeasurements = useSavedMeasurements();
 
   // Local UI state
   const [screenDimensions, setScreenDimensions] = useState<Dimensions>({ width: 0, height: 0 });
@@ -143,6 +145,11 @@ function App() {
               unit={unit}
               isCalibrated={calibration.isCalibrated}
               isCalibratingMode={isCalibrating}
+              savedMeasurements={savedMeasurements.savedMeasurements}
+              canSave={savedMeasurements.canSave}
+              onSaveMeasurement={() => savedMeasurements.saveMeasurement(measurementPoints.points, measurement.displayValue, unit)}
+              onDeleteMeasurement={savedMeasurements.deleteMeasurement}
+              onRenameMeasurement={savedMeasurements.renameMeasurement}
               onUnitChange={setUnit}
               onCalibrateStart={() => setIsCalibrating(true)}
               onCalibrateConfirm={() => setIsInputModalOpen(true)}

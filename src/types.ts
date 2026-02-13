@@ -48,3 +48,13 @@ export interface CalibrationInput {
     realLength: number;
     unit: 'cm' | 'inch';
 }
+
+// Saved measurement
+export interface SavedMeasurement {
+    id: string;
+    name: string;
+    points: [Point, Point];
+    value: number;
+    unit: Unit;
+    timestamp: number;
+}
