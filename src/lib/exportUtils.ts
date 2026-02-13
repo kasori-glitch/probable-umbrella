@@ -137,24 +137,49 @@ export async function renderMeasurementToImage(
 }
 
 /**
- * Downloads a blob as a file
+ * Downloads a blob as a file with fallback for mobile browsers
  */
 export function downloadBlob(blob: Blob, fileName: string) {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = fileName;
 
-    // Append to body to ensure it's "trackable" by the browser for the download action
-    document.body.appendChild(a);
-    a.click();
+    // Check if we're on a mobile device (rough detection)
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // Clean up
-    setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, 100);
+    if (isMobile) {
+        // On mobile, opening in a new tab is much more reliable than triggering a download
+        // especially in in-app browsers or Safari
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow) {
+            // If window.open was blocked, try the standard method as last resort
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        } else {
+            // If window.open worked, we don't revoke immediately so the user can save it
+            // but we should eventually clean up if possible, or just let the browser handle it
+            // since it's a new tab.
+        }
+    } else {
+        // Desktop standard method
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
+    }
 }
 
 /**
