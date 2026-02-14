@@ -139,48 +139,58 @@ export async function renderMeasurementToImage(
 /**
  * Downloads a blob as a file
  */
-export function downloadBlob(blob: Blob, fileName: string) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = fileName;
+export async function downloadBlob(blob: Blob, fileName: string) {
+    // Convert Blob to Data URL for better mobile compatibility
+    // Many mobile browsers/WebViews block Blob URLs for security or simply don't handle them for 'a' tag downloads
+    const reader = new FileReader();
+    reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = dataUrl;
+        a.download = fileName;
 
-    document.body.appendChild(a);
-    a.click();
+        document.body.appendChild(a);
+        a.click();
 
-    setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }, 100);
+        setTimeout(() => {
+            document.body.removeChild(a);
+        }, 100);
+    };
+    reader.onerror = () => {
+        logger.error('Failed to convert blob to data URL for download');
+    };
+    reader.readAsDataURL(blob);
 }
 
 /**
  * Shares a blob using the Web Share API if supported
  */
 export async function shareBlob(blob: Blob, fileName: string): Promise<boolean> {
-    if (!navigator.share || !navigator.canShare) {
-        return false;
-    }
-
-    const file = new File([blob], fileName, { type: blob.type });
-    const shareData = {
-        files: [file],
-        title: 'Measurement Export',
-        text: 'Sent from On Screen Mesure app'
-    };
-
-    if (navigator.canShare(shareData)) {
-        try {
-            await navigator.share(shareData);
-            return true;
-        } catch (error) {
-            if ((error as Error).name !== 'AbortError') {
-                logger.error('Error sharing image', { error: error as Error });
-            }
+    try {
+        if (!navigator.share || !navigator.canShare) {
+            logger.warn('Web Share API not supported');
             return false;
         }
-    }
 
-    return false;
+        const file = new File([blob], fileName, { type: blob.type });
+        const shareData = {
+            files: [file],
+            title: 'Measurement Export',
+            text: 'Sent from On Screen Mesure app'
+        };
+
+        if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            return true;
+        } else {
+            logger.warn('Browser cannot share this file data');
+            return false;
+        }
+    } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+            logger.error('Error sharing image', { error: error as Error });
+        }
+        return false;
+    }
 }

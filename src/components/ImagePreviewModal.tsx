@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Download, Share2, Info } from 'lucide-react';
 import { downloadBlob, shareBlob } from '../lib/exportUtils';
+import { logger } from '../utils/logger';
 
 interface ImagePreviewModalProps {
     imageUrl: string;
@@ -27,12 +28,21 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         reader.readAsDataURL(imageBlob);
     }, [imageBlob]);
 
-    const handleDownload = () => {
-        downloadBlob(imageBlob, fileName);
+    const handleDownload = async () => {
+        try {
+            await downloadBlob(imageBlob, fileName);
+            // On some mobile devices, we can't reliably know if it "worked" but the trigger is sent
+        } catch (error) {
+            logger.error('Download failed', { error });
+            alert('Download failed. Try long-pressing the image to save.');
+        }
     };
 
     const handleShare = async () => {
-        await shareBlob(imageBlob, fileName);
+        const success = await shareBlob(imageBlob, fileName);
+        if (!success) {
+            alert('Sharing is not supported on this device or failed. Try long-pressing the image to save.');
+        }
     };
 
     return (
