@@ -93,7 +93,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 <span style={{
                     fontSize: '3.5rem',
                     fontWeight: 700,
-                    fontFamily: 'Exo 2, sans-serif',
+                    fontFamily: 'var(--font-family-display)',
                     color: 'var(--text-light)',
                     lineHeight: 1
                 }}>

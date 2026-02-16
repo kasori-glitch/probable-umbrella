@@ -1,30 +1,21 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { Point, Unit, SavedMeasurement } from '../types';
 import { logger } from '../utils/logger';
-import { STORAGE_KEYS } from '../constants';
-import { getStorageItem, setStorageItem } from '../utils/storage';
 
 export function useSavedMeasurements() {
-    const [savedMeasurements, setSavedMeasurements] = useState<SavedMeasurement[]>(() => {
-        return getStorageItem(STORAGE_KEYS.SAVED_MEASUREMENTS, []);
-    });
-
-    // Persist to storage whenever measurements change
-    useEffect(() => {
-        setStorageItem(STORAGE_KEYS.SAVED_MEASUREMENTS, savedMeasurements);
-    }, [savedMeasurements]);
+    const [savedMeasurements, setSavedMeasurements] = useState<SavedMeasurement[]>([]);
 
     const saveMeasurement = useCallback((points: [Point, Point], value: number, unit: Unit) => {
         setSavedMeasurements(prev => {
-            if (prev.length >= 3) {
-                logger.warn('Maximum 3 measurements reached');
+            if (prev.length >= 10) {
+                logger.warn('Maximum 10 measurements reached');
                 return prev;
             }
 
             const newId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
             const newMeasurement: SavedMeasurement = {
                 id: newId,
-                name: `mesure${prev.length + 1}`,
+                name: `Measure ${prev.length + 1}`,
                 points: [...points],
                 value,
                 unit,
@@ -39,8 +30,6 @@ export function useSavedMeasurements() {
     const deleteMeasurement = useCallback((id: string) => {
         setSavedMeasurements(prev => {
             const filtered = prev.filter(m => m.id !== id);
-            // Re-index names to maintain mesure1, mesure2 sequence if desired, 
-            // but usually id-based delete is cleaner. Let's keep names as they were for now.
             logger.info(`Measurement deleted: ${id}`);
             return filtered;
         });
@@ -59,6 +48,6 @@ export function useSavedMeasurements() {
         saveMeasurement,
         deleteMeasurement,
         renameMeasurement,
-        canSave: savedMeasurements.length < 3
+        canSave: savedMeasurements.length < 10
     };
 }

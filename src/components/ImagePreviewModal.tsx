@@ -15,7 +15,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     onClose
 }) => {
     const [dataUrl, setDataUrl] = useState<string>(imageUrl);
-    const fileName = `measurement-${Date.now()}.png`;
+    const [fileName] = useState(() => `measurement-${Date.now()}.png`);
 
     useEffect(() => {
         // Convert Blob to Data URL for better mobile "Save Image" compatibility
@@ -83,7 +83,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 textAlign: 'center',
                 marginBottom: '20px'
             }}>
-                <h2 style={{ color: 'var(--primary)', margin: '0 0 8px 0', fontFamily: 'Exo 2' }}>Ready to Save</h2>
+                <h2 style={{ color: 'var(--primary)', margin: '0 0 8px 0', fontFamily: 'var(--font-family-display)' }}>Ready to Save</h2>
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -153,14 +153,6 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                     Share
                 </button>
             </div>
-
-            <style dangerouslySetInnerHTML={{
-                __html: `
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: scale(0.95); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-            `}} />
         </div>
     );
 };

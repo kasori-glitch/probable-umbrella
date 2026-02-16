@@ -10,7 +10,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'On Screen Mesure',
+        name: 'On Screen Measure',
         short_name: 'Measure',
         description: 'Precision On-Screen Measurement Tool',
         theme_color: '#050505',

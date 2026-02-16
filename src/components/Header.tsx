@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
                         filter: 'drop-shadow(0 0 5px var(--primary-glow))'
                     }}
                 >
-                    On screen mesure
+                    On Screen Measure
                 </h1>
             </div>
 

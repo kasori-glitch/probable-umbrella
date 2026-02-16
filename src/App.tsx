@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import './App.css';
 import { ImageWorkspace } from './components/ImageWorkspace';
 import { ControlPanel } from './components/ControlPanel';
 import { CalibrationModal } from './components/CalibrationModal';

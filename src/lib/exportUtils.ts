@@ -117,7 +117,7 @@ export async function renderMeasurementToImage(
             });
 
             // Add Watermark
-            const watermarkText = 'Measured with On Screen Mesure';
+            const watermarkText = 'Measured with On Screen Measure';
             const watermarkSize = Math.max(16, canvas.width / 60);
             ctx.font = `${watermarkSize}px "Inter", sans-serif`;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
@@ -177,7 +177,7 @@ export async function shareBlob(blob: Blob, fileName: string): Promise<boolean> 
         const shareData = {
             files: [file],
             title: 'Measurement Export',
-            text: 'Sent from On Screen Mesure app'
+            text: 'Sent from On Screen Measure app'
         };
 
         if (navigator.canShare(shareData)) {

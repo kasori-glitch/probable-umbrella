@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     Saved Measures
                 </h3>
                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Max 3 slots available
+                    Max 10 slots available
                 </p>
             </div>
 
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
             >
                 <Save size={18} />
-                Save Current ({savedMeasurements.length}/3)
+                Save Current ({savedMeasurements.length}/10)
             </button>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
@@ -127,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     <Trash2 size={16} />
                                 </button>
                             </div>
-                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'Exo 2' }}>
+                            <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#fff', fontFamily: 'var(--font-family-display)' }}>
                                 {m.value.toFixed(2)} <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 400 }}>{m.unit}</span>
                             </div>
                         </div>

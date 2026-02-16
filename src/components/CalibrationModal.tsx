@@ -122,7 +122,7 @@ export const CalibrationModal: React.FC<CalibrationModalProps> = ({
                         />
                         <select
                             value={unit}
-                            onChange={e => setUnit(e.target.value as any)}
+                            onChange={e => setUnit(e.target.value as 'cm' | 'inch')}
                             style={{
                                 background: 'rgba(0,0,0,0.3)',
                                 border: '1px solid rgba(255,255,255,0.2)',
