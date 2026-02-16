@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, Share2, Info } from 'lucide-react';
+import { X, Download, Share2 } from 'lucide-react';
 import { downloadBlob, shareBlob } from '../lib/exportUtils';
 import { logger } from '../utils/logger';
 
@@ -16,10 +16,9 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 }) => {
     const [dataUrl, setDataUrl] = useState<string>(imageUrl);
     const [fileName] = useState(() => `measurement-${Date.now()}.png`);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        // Convert Blob to Data URL for better mobile "Save Image" compatibility
-        // Blob URLs are blocked by many mobile WebViews; data URLs enable native long-press save
         const reader = new FileReader();
         reader.onloadend = () => {
             if (typeof reader.result === 'string') {
@@ -30,23 +29,33 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     }, [imageBlob]);
 
     const handleDownload = async () => {
+        if (saving) return;
+        setSaving(true);
         try {
             await downloadBlob(imageBlob, fileName);
         } catch (error) {
             logger.error('Download failed', { error });
-            alert('Download failed. Try long-pressing the image to save.');
+            alert('Download failed. Please try the Share button instead.');
+        } finally {
+            setSaving(false);
         }
     };
 
     const handleShare = async () => {
-        const success = await shareBlob(imageBlob, fileName);
-        if (!success) {
-            alert('Sharing is not supported on this device or failed. Try long-pressing the image to save.');
+        if (saving) return;
+        setSaving(true);
+        try {
+            const success = await shareBlob(imageBlob, fileName);
+            if (!success) {
+                alert('Sharing is not supported on this device. Please try the Download button.');
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
     return (
-        <div className="preview-overlay allow-select" style={{
+        <div className="preview-overlay" style={{
             position: 'fixed',
             inset: 0,
             zIndex: 2000,
@@ -84,67 +93,39 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 marginBottom: '20px'
             }}>
                 <h2 style={{ color: 'var(--primary)', margin: '0 0 8px 0', fontFamily: 'var(--font-family-display)' }}>Ready to Save</h2>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
+                <p style={{
                     color: 'var(--text-muted)',
                     fontSize: '0.9rem',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    padding: '8px 16px',
-                    borderRadius: '20px'
+                    margin: 0
                 }}>
-                    <Info size={16} />
-                    <span>Long-press image to save directly to gallery</span>
-                </div>
+                    Use the buttons below to save or share your measurement
+                </p>
             </div>
 
-            <div
-                className="allow-select"
-                style={{
-                    flex: 1,
-                    width: '100%',
-                    maxWidth: '600px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    borderRadius: '12px',
-                    boxShadow: '0 0 30px rgba(0, 240, 255, 0.2)',
-                    background: '#000'
-                }}
-            >
-                {/* 
-                    The <a> wrapper enables native long-press "Save Image" on both
-                    iOS Safari/WKWebView and Android Chrome/WebView.
-                    download attribute triggers save instead of navigation.
-                */}
-                <a
-                    href={dataUrl}
-                    download={fileName}
-                    className="allow-select"
+            <div style={{
+                flex: 1,
+                width: '100%',
+                maxWidth: '600px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                borderRadius: '12px',
+                boxShadow: '0 0 30px rgba(0, 240, 255, 0.2)',
+                background: '#000'
+            }}>
+                <img
+                    src={dataUrl}
+                    alt="Measurement Preview"
                     style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain',
                         display: 'block',
-                        width: '100%',
-                        height: '100%',
-                        lineHeight: 0
+                        width: '100%'
                     }}
-                    onClick={(e) => e.preventDefault()}
-                >
-                    <img
-                        src={dataUrl}
-                        alt="Measurement Preview"
-                        className="selectable-image"
-                        style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain',
-                            display: 'block',
-                            width: '100%'
-                        }}
-                    />
-                </a>
+                    draggable={false}
+                />
             </div>
 
             <div style={{
@@ -157,18 +138,21 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 <button
                     className="btn btn-primary"
                     onClick={handleDownload}
-                    style={{ flex: 1, padding: '16px' }}
+                    disabled={saving}
+                    style={{ flex: 1, padding: '16px', opacity: saving ? 0.6 : 1 }}
                 >
                     <Download size={20} />
-                    Download
+                    {saving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                     className="btn"
                     onClick={handleShare}
+                    disabled={saving}
                     style={{
                         flex: 1,
                         padding: '16px',
-                        background: 'rgba(255, 255, 255, 0.05)'
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        opacity: saving ? 0.6 : 1
                     }}
                 >
                     <Share2 size={20} />

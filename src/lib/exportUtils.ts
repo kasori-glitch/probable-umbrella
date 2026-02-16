@@ -3,6 +3,7 @@
  */
 import type { Point, Unit } from '../types';
 import { logger } from '../utils/logger';
+import { Capacitor } from '@capacitor/core';
 
 /**
  * Renders the current measurement onto the original image using a canvas.
@@ -137,30 +138,43 @@ export async function renderMeasurementToImage(
 }
 
 /**
- * Downloads a blob as a file
+ * Downloads a blob as a file.
+ * On native Capacitor (Android/iOS), uses navigator.share() since <a download>
+ * does not work in WebView. Falls back to <a download> for desktop browsers.
  */
-export async function downloadBlob(blob: Blob, fileName: string) {
-    // Convert Blob to Data URL for better mobile compatibility
-    // Many mobile browsers/WebViews block Blob URLs for security or simply don't handle them for 'a' tag downloads
-    const reader = new FileReader();
-    reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = dataUrl;
-        a.download = fileName;
+export async function downloadBlob(blob: Blob, fileName: string): Promise<void> {
+    // On native platforms, <a download> doesn't work in WebView.
+    // Use navigator.share which triggers the OS share sheet (includes "Save to device").
+    if (Capacitor.isNativePlatform()) {
+        const shared = await shareBlob(blob, fileName);
+        if (shared) return;
+        // If share failed, fall through to <a> method as last resort
+    }
 
-        document.body.appendChild(a);
-        a.click();
+    // Desktop browser: <a download> works reliably
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = dataUrl;
+            a.download = fileName;
 
-        setTimeout(() => {
-            document.body.removeChild(a);
-        }, 100);
-    };
-    reader.onerror = () => {
-        logger.error('Failed to convert blob to data URL for download');
-    };
-    reader.readAsDataURL(blob);
+            document.body.appendChild(a);
+            a.click();
+
+            setTimeout(() => {
+                document.body.removeChild(a);
+                resolve();
+            }, 100);
+        };
+        reader.onerror = () => {
+            logger.error('Failed to convert blob to data URL for download');
+            reject(new Error('Download conversion failed'));
+        };
+        reader.readAsDataURL(blob);
+    });
 }
 
 /**
