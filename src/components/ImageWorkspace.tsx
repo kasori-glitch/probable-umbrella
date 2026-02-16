@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { MeasurementPoint } from './MeasurementPoint';
 import { Magnifier } from './Magnifier';
 import type { Point } from '../types';
@@ -13,6 +13,10 @@ interface ImageWorkspaceProps {
     onDragEnd?: () => void;
 }
 
+// Pre-import cvUtils so we don't dynamic-import on every pointer move
+let snapModule: typeof import('../lib/cvUtils') | null = null;
+import('../lib/cvUtils').then(m => { snapModule = m; });
+
 export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     imageSrc,
     points,
@@ -26,7 +30,23 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
     const [containerSize, setContainerSize] = useState<{ width: number, height: number } | null>(null);
 
+    // Use refs for values that change during drag to avoid re-creating listeners
+    const pointsRef = useRef(points);
+    const onPointsChangeRef = useRef(onPointsChange);
+    const onDragStartRef = useRef(onDragStart);
+    const onDragEndRef = useRef(onDragEnd);
+
+    useEffect(() => { pointsRef.current = points; }, [points]);
+    useEffect(() => { onPointsChangeRef.current = onPointsChange; }, [onPointsChange]);
+    useEffect(() => { onDragStartRef.current = onDragStart; }, [onDragStart]);
+    useEffect(() => { onDragEndRef.current = onDragEnd; }, [onDragEnd]);
+
     // Track container size for Magnifier AND Parent App
+    const handleDimensionsChange = useCallback((width: number, height: number) => {
+        setContainerSize({ width, height });
+        onDimensionsChange?.(width, height);
+    }, [onDimensionsChange]);
+
     useEffect(() => {
         if (!containerRef.current) return;
 
@@ -34,28 +54,24 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             const entry = entries[0];
             if (entry) {
                 const { width, height } = entry.contentRect;
-                setContainerSize({ width, height });
-                if (onDimensionsChange) {
-                    onDimensionsChange(width, height);
-                }
+                handleDimensionsChange(width, height);
             }
         });
 
         observer.observe(containerRef.current);
         return () => observer.disconnect();
-    }, [onDimensionsChange]);
+    }, [handleDimensionsChange]);
 
-    // Handle Dragging
+    // Handle Dragging - uses refs so the effect only re-runs when activePointIndex changes
     useEffect(() => {
         if (activePointIndex === null) return;
 
         // Notify drag start
-        onDragStart?.();
+        onDragStartRef.current?.();
 
-        // RAF ID scoped within this effect to prevent memory leaks
         let animationFrameId: number | null = null;
 
-        const handlePointerMove = async (e: PointerEvent) => {
+        const handlePointerMove = (e: PointerEvent) => {
             if (!containerRef.current) return;
 
             const rect = containerRef.current.getBoundingClientRect();
@@ -67,29 +83,42 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             x = Math.max(0, Math.min(1, x));
             y = Math.max(0, Math.min(1, y));
 
-            // Magnet-Snap Logic
+            // Magnet-Snap Logic (non-blocking, uses pre-loaded module)
             let finalX = x;
             let finalY = y;
 
-            if (img && img.complete) {
-                const { findBestSnapPoint } = await import('../lib/cvUtils');
-                // ROI: 20 (extremely tight), Sensitivity: 15 (weighted score threshold)
-                const snapPoint = await findBestSnapPoint(img, { x, y }, 20, 15);
-                if (snapPoint) {
-                    finalX = snapPoint.x;
-                    finalY = snapPoint.y;
+            if (img && img.complete && snapModule) {
+                const snapPoint = snapModule.findBestSnapPoint(img, { x, y }, 20, 15);
+                // findBestSnapPoint returns a Promise, resolve it
+                snapPoint.then(result => {
+                    if (result) {
+                        finalX = result.x;
+                        finalY = result.y;
+                    }
+
+                    const currentPoints = pointsRef.current;
+                    const newPoints = [...currentPoints] as [Point, Point];
+                    newPoints[activePointIndex] = { x: finalX, y: finalY };
+
+                    if (animationFrameId !== null) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animationFrameId = requestAnimationFrame(() => {
+                        onPointsChangeRef.current(newPoints);
+                    });
+                });
+            } else {
+                const currentPoints = pointsRef.current;
+                const newPoints = [...currentPoints] as [Point, Point];
+                newPoints[activePointIndex] = { x: finalX, y: finalY };
+
+                if (animationFrameId !== null) {
+                    cancelAnimationFrame(animationFrameId);
                 }
+                animationFrameId = requestAnimationFrame(() => {
+                    onPointsChangeRef.current(newPoints);
+                });
             }
-
-            const newPoints = [...points] as [Point, Point];
-            newPoints[activePointIndex] = { x: finalX, y: finalY };
-
-            if (animationFrameId !== null) {
-                cancelAnimationFrame(animationFrameId);
-            }
-            animationFrameId = requestAnimationFrame(() => {
-                onPointsChange(newPoints);
-            });
         };
 
         const handlePointerUp = () => {
@@ -97,8 +126,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
             }
-            // Notify drag end
-            onDragEnd?.();
+            onDragEndRef.current?.();
         };
 
         window.addEventListener('pointermove', handlePointerMove);
@@ -112,10 +140,9 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             if (animationFrameId !== null) {
                 cancelAnimationFrame(animationFrameId);
             }
-            // Ensure we notify end if unmounting while dragging
-            onDragEnd?.();
+            onDragEndRef.current?.();
         };
-    }, [activePointIndex, points, onPointsChange, onDragStart, onDragEnd]);
+    }, [activePointIndex]);
 
     return (
         <div
@@ -139,23 +166,20 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                     display: 'inline-block',
                     maxWidth: '100%',
                     maxHeight: '100%',
-                    // We let the image define the size of this container
                 }}
             >
                 <img
                     src={imageSrc}
                     onLoad={(e) => {
                         const img = e.currentTarget;
-                        if (onImageLoaded) {
-                            onImageLoaded(img.naturalWidth, img.naturalHeight);
-                        }
+                        onImageLoaded?.(img.naturalWidth, img.naturalHeight);
                     }}
                     alt="Workspace"
                     style={{
                         display: 'block',
                         maxWidth: '100%',
-                        maxHeight: '80vh', // Leave room for controls
-                        pointerEvents: 'none', // Let clicks pass through to container if needed, but mostly just visual
+                        maxHeight: '80vh',
+                        pointerEvents: 'none',
                         userSelect: 'none'
                     }}
                     draggable={false}
@@ -206,7 +230,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                     color="var(--primary)"
                     isActive={activePointIndex === 0}
                     onPointerDown={(e) => {
-                        e.stopPropagation(); // Prevent triggering other things
+                        e.stopPropagation();
                         setActivePointIndex(0);
                     }}
                 />

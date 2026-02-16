@@ -1,0 +1,137 @@
+# On Screen Measure - Project Instructions & Documentation
+
+## Overview
+On Screen Measure is a precision on-screen measurement tool built as a cross-platform web/mobile app.
+Users upload a photo, calibrate using a real-world reference object, and measure anything in the image
+with real-world units (cm, inch, px). The app targets both desktop browsers and Android via Capacitor.
+
+## Tech Stack
+- **Framework**: React 19 + TypeScript (strict mode)
+- **Build tool**: Vite 7 with vite-plugin-pwa for PWA support
+- **Mobile**: Capacitor 8 (Android)
+- **Icons**: lucide-react
+- **Fonts**: Inter (body), Exo 2 (display/headings) via Google Fonts
+- **Styling**: CSS variables + inline styles (no CSS framework)
+- **Theme**: Dark cyberpunk aesthetic (cyan primary #00f0ff, dark backgrounds)
+
+## Scripts
+- `npm run dev`   - Start Vite dev server
+- `npm run build` - TypeScript check + Vite production build
+- `npm run lint`  - ESLint (strict React hooks rules including purity checks)
+- `npm run preview` - Preview production build locally
+
+## Project Structure
+
+```
+src/
+  main.tsx                         # Entry point, renders <MeasureApp /> inside ErrorBoundary
+  App.tsx                          # Root component, orchestrates all state and UI
+  types.ts                         # Shared TypeScript interfaces (Point, Calibration, Unit, etc.)
+  constants.ts                     # All magic numbers, limits, error messages, storage keys
+  index.css                        # Global styles, CSS variables, animations, responsive rules
+
+  components/
+    Header.tsx                     # Top bar with logo, app title, and mobile sidebar toggle ("SAVED" button)
+    EmptyState.tsx                 # Landing screen when no image is loaded (upload + calibrate buttons)
+    ImageWorkspace.tsx             # Main canvas area: displays image, measurement points, SVG line, magnifier
+    MeasurementPoint.tsx           # Draggable point marker (A / B) with crosshair and hit area
+    Magnifier.tsx                  # Zoomed loupe that follows the active dragging point
+    ControlPanel.tsx               # Bottom panel: distance display, unit switcher, calibrate/reset/export buttons
+    CalibrationModal.tsx           # Modal for entering real-world length (presets: credit card, coin, quarter)
+    Sidebar.tsx                    # Right panel: saved measurements list (save/rename/delete, max 10 slots)
+    OnboardingTutorial.tsx         # First-time user tutorial overlay (4 step walkthrough)
+    ImagePreviewModal.tsx          # Full-screen preview of exported image with download/share buttons
+    ErrorAlert.tsx                 # Dismissible error toast at top of screen
+    LoadingSpinner.tsx             # Full-screen loading overlay
+    ErrorBoundary.tsx              # React error boundary with dev-mode stack trace
+
+  hooks/
+    useCalibration.ts              # Manages calibration state, persists to localStorage
+    useImageUpload.ts              # Handles file validation, resize, and loading into state
+    useMeasurement.ts              # Calculates screen distance (px) and converts to display unit
+    useMeasurementPoints.ts        # Manages the two draggable point positions (normalized 0-1)
+    useSavedMeasurements.ts        # In-memory saved measurements (up to 10 slots)
+
+  lib/
+    measurements.ts                # Pure business logic: distance calculation, unit conversion, calibration math
+    cvUtils.ts                     # Magnet-snap edge detection using canvas Sobel gradient analysis
+    exportUtils.ts                 # Renders measurements onto image canvas, download/share utilities
+
+  utils/
+    validation.ts                  # File validation, calibration input validation, type guards
+    storage.ts                     # Safe localStorage wrapper with error handling
+    imageUtils.ts                  # Image resize utility (max 2000x2000, maintains aspect ratio)
+    logger.ts                      # Centralized logger (dev-only info/debug, always-on error/warn)
+```
+
+## Key Architecture Decisions
+
+### Coordinate System
+All measurement points use **normalized coordinates** (0-1 range) relative to the displayed image.
+This ensures measurements are resolution-independent and survive container resizes.
+
+### Calibration
+- User aligns points A and B to a known object, then enters its real-world length.
+- The app calculates `pixelsPerCm` = screenDistancePx / realLengthCm.
+- Calibration persists in localStorage via `useCalibration` hook.
+- Presets available: credit card (8.56cm), 2 Euro coin (2.58cm), US quarter (0.95in).
+
+### Magnet-Snap (Edge Detection)
+`cvUtils.ts` implements a lightweight Sobel-gradient edge detector on a small ROI canvas.
+During point dragging, it snaps the point to the nearest high-contrast edge for precision.
+The module is eagerly pre-imported to avoid dynamic import overhead during drag events.
+
+### Export Pipeline
+1. `renderMeasurementToImage()` draws all measurements (current + saved) onto a canvas copy of the original image.
+2. The resulting Blob is converted to a data URL for maximum mobile compatibility.
+3. Users can long-press the image to save, use the Download button, or Share via Web Share API.
+
+### Mobile Considerations
+- Capacitor handles Android back button (exit app or history.back).
+- All CSS disables user-select/touch-callout globally for app-like feel.
+- The image preview modal overrides these restrictions with `allow-select` / `selectable-image` classes.
+- The preview image is wrapped in an `<a download>` tag to enable native long-press save on mobile browsers.
+- Touch targets are minimum 52px on mobile.
+- Safe area insets are respected for notched devices.
+
+### Performance Optimizations
+- ImageWorkspace uses refs (synced via useEffect) for drag handler values to avoid re-creating
+  event listeners on every point change during drag.
+- cvUtils is pre-imported at module level (not dynamically imported per pointer move).
+- useMeasurement destructures to primitives for stable useMemo dependencies.
+- requestAnimationFrame throttles point updates during drag.
+- Images are resized to max 2000x2000 on upload to limit memory usage.
+
+## CSS Architecture
+- All design tokens are in `:root` CSS variables (colors, dimensions, effects, fonts).
+- `--font-family`: Inter (body text), `--font-family-display`: Exo 2 (headings, measurement readout).
+- Glass-panel utility class for consistent frosted-glass cards.
+- Responsive breakpoints: portrait mobile (<768px), landscape mobile (<500px height).
+- On mobile, sidebar becomes a slide-in panel from the right, toggled by "SAVED" button in header.
+- Animations: logo-flicker, text-reveal, pulse, spin, float, draw (SVG tutorial sketches).
+
+## Important Conventions
+- **No `as any`** - all casts must use proper union types.
+- **No `dangerouslySetInnerHTML`** - all CSS belongs in stylesheets.
+- **No impure calls during render** - use `useState` initializers or effects for `Date.now()` etc.
+- **React imports**: Required in all component files that use `React.FC` (verbatimModuleSyntax enabled).
+- **Spelling**: "Measure" (not "Mesure") everywhere.
+- **Error handling**: All user-facing errors go through `ErrorAlert` component; logger for dev diagnostics.
+
+## PWA Configuration
+- Service worker: auto-update via workbox (vite-plugin-pwa).
+- Manifest: standalone display, portrait orientation, dark theme (#050505).
+- Icons expected in public/: pwa-192x192.png, pwa-512x512.png, apple-touch-icon.png, favicon.ico.
+
+## Capacitor (Android)
+- Config in `capacitor.config.ts`: appId `com.onscreenmesure.app`, webDir `dist`.
+- Android project in `android/` directory.
+- Back button handler in App.tsx via `@capacitor/app`.
+
+## Content Security Policy
+Defined in `index.html`:
+- `default-src 'self'`
+- `img-src 'self' data: blob:`
+- `style-src 'self' 'unsafe-inline' fonts.googleapis.com`
+- `font-src fonts.gstatic.com`
+- `script-src 'self'`

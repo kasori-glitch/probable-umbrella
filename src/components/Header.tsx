@@ -1,5 +1,5 @@
 import React from 'react';
-import { Target, History, X } from 'lucide-react';
+import { Target, Bookmark, X } from 'lucide-react';
 
 interface HeaderProps {
     onToggleSidebar?: () => void;
@@ -78,8 +78,8 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, isSidebarOpen }
                         transition: 'all 0.2s'
                     }}
                 >
-                    {isSidebarOpen ? <X size={16} /> : <History size={16} />}
-                    {isSidebarOpen ? 'CLOSE' : 'HISTORY'}
+                    {isSidebarOpen ? <X size={16} /> : <Bookmark size={16} />}
+                    {isSidebarOpen ? 'CLOSE' : 'SAVED'}
                 </button>
 
                 <div className="desktop-only" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>

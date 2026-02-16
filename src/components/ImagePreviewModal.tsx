@@ -19,6 +19,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 
     useEffect(() => {
         // Convert Blob to Data URL for better mobile "Save Image" compatibility
+        // Blob URLs are blocked by many mobile WebViews; data URLs enable native long-press save
         const reader = new FileReader();
         reader.onloadend = () => {
             if (typeof reader.result === 'string') {
@@ -31,7 +32,6 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     const handleDownload = async () => {
         try {
             await downloadBlob(imageBlob, fileName);
-            // On some mobile devices, we can't reliably know if it "worked" but the trigger is sent
         } catch (error) {
             logger.error('Download failed', { error });
             alert('Download failed. Try long-pressing the image to save.');
@@ -100,29 +100,51 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 </div>
             </div>
 
-            <div style={{
-                flex: 1,
-                width: '100%',
-                maxWidth: '600px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                borderRadius: '12px',
-                boxShadow: '0 0 30px rgba(0, 240, 255, 0.2)',
-                background: '#000'
-            }}>
-                <img
-                    src={dataUrl}
-                    alt="Measurement Preview"
-                    className="selectable-image"
+            <div
+                className="allow-select"
+                style={{
+                    flex: 1,
+                    width: '100%',
+                    maxWidth: '600px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    borderRadius: '12px',
+                    boxShadow: '0 0 30px rgba(0, 240, 255, 0.2)',
+                    background: '#000'
+                }}
+            >
+                {/* 
+                    The <a> wrapper enables native long-press "Save Image" on both
+                    iOS Safari/WKWebView and Android Chrome/WebView.
+                    download attribute triggers save instead of navigation.
+                */}
+                <a
+                    href={dataUrl}
+                    download={fileName}
+                    className="allow-select"
                     style={{
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        objectFit: 'contain',
-                        display: 'block'
+                        display: 'block',
+                        width: '100%',
+                        height: '100%',
+                        lineHeight: 0
                     }}
-                />
+                    onClick={(e) => e.preventDefault()}
+                >
+                    <img
+                        src={dataUrl}
+                        alt="Measurement Preview"
+                        className="selectable-image"
+                        style={{
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            objectFit: 'contain',
+                            display: 'block',
+                            width: '100%'
+                        }}
+                    />
+                </a>
             </div>
 
             <div style={{
@@ -131,7 +153,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 width: '100%',
                 maxWidth: '400px',
                 marginTop: '24px'
-            }} className="allow-select">
+            }}>
                 <button
                     className="btn btn-primary"
                     onClick={handleDownload}

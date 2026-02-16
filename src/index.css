@@ -486,17 +486,29 @@ input[type="number"]:focus {
 }
 
 /* Mobile Compatibility Overrides */
-.allow-select {
+.allow-select,
+.allow-select * {
   user-select: auto !important;
   -webkit-user-select: auto !important;
   -webkit-touch-callout: default !important;
+  -webkit-tap-highlight-color: auto !important;
 }
 
 .selectable-image {
   user-select: auto !important;
   -webkit-user-select: auto !important;
   -webkit-touch-callout: default !important;
+  -webkit-tap-highlight-color: auto !important;
   pointer-events: auto !important;
+  touch-action: auto !important;
+}
+
+/* Preview overlay: fully enable native touch interactions */
+.preview-overlay {
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  -webkit-touch-callout: default !important;
+  touch-action: auto !important;
 }
 
 /* Image Preview Modal */

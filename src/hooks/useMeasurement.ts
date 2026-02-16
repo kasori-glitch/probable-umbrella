@@ -17,13 +17,24 @@ export function useMeasurement(
     calibration: Calibration,
     unit: Unit
 ): UseMeasurementReturn {
+    // Destructure to primitives so useMemo deps are stable
+    const ax = points[0].x;
+    const ay = points[0].y;
+    const bx = points[1].x;
+    const by = points[1].y;
+    const dw = dimensions.width;
+    const dh = dimensions.height;
+
     const screenDistancePx = useMemo(() => {
-        return calculateScreenDistance(points[0], points[1], dimensions);
-    }, [points, dimensions]);
+        return calculateScreenDistance({ x: ax, y: ay }, { x: bx, y: by }, { width: dw, height: dh });
+    }, [ax, ay, bx, by, dw, dh]);
+
+    const ppcm = calibration.pixelsPerCm;
+    const isCalibrated = calibration.isCalibrated;
 
     const displayValue = useMemo(() => {
-        return convertDistance(screenDistancePx, unit, calibration);
-    }, [screenDistancePx, unit, calibration]);
+        return convertDistance(screenDistancePx, unit, { pixelsPerCm: ppcm, isCalibrated });
+    }, [screenDistancePx, unit, ppcm, isCalibrated]);
 
     return {
         screenDistancePx,
