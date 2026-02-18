@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Check } from 'lucide-react';
 import { MeasurementPoint } from './MeasurementPoint';
 import { Magnifier } from './Magnifier';
 import type { Point, Unit } from '../types';
@@ -36,6 +36,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
     const [containerSize, setContainerSize] = useState<{ width: number, height: number } | null>(null);
+    const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
     // Use refs for values that change during drag to avoid re-creating listeners
     const pointsRef = useRef(points);
@@ -151,6 +152,13 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         };
     }, [activePointIndex]);
 
+    const handleQuickSave = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onSave?.(points, distance, unit);
+        setShowSavedFeedback(true);
+        setTimeout(() => setShowSavedFeedback(false), 1500);
+    };
+
     return (
         <div
             className="image-workspace"
@@ -231,29 +239,27 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                     }}
                 >
                     <div style={{
-                        background: 'rgba(5, 5, 5, 0.85)',
-                        border: '1px solid var(--primary)',
+                        background: showSavedFeedback ? 'var(--success)' : 'rgba(5, 5, 5, 0.85)',
+                        border: `1px solid ${showSavedFeedback ? 'var(--success)' : 'var(--primary)'}`,
                         borderRadius: '20px',
                         padding: '4px 10px',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px',
-                        boxShadow: '0 0 10px var(--primary-glow)',
+                        boxShadow: showSavedFeedback ? '0 0 15px var(--success)' : '0 0 10px var(--primary-glow)',
                         backdropFilter: 'blur(4px)',
-                        color: 'white',
+                        color: showSavedFeedback ? '#000' : 'white',
                         fontWeight: 'bold',
-                        fontSize: '0.85rem'
+                        fontSize: '0.85rem',
+                        transition: 'all 0.3s ease'
                     }}>
-                        <span>{distance.toFixed(2)} {unit}</span>
+                        <span>{showSavedFeedback ? 'Saved!' : `${distance.toFixed(2)} ${unit}`}</span>
                         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onSave?.(points, distance, unit);
-                            }}
+                            onClick={handleQuickSave}
                             className="quick-save-btn"
                             style={{
-                                background: 'var(--primary)',
-                                color: 'black',
+                                background: showSavedFeedback ? '#000' : 'var(--primary)',
+                                color: showSavedFeedback ? 'var(--success)' : 'black',
                                 border: 'none',
                                 borderRadius: '50%',
                                 width: '22px',
@@ -266,7 +272,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                             }}
                             title="Quick Save"
                         >
-                            <Plus size={14} />
+                            {showSavedFeedback ? <Check size={14} /> : <Plus size={14} />}
                         </button>
                     </div>
                 </div>

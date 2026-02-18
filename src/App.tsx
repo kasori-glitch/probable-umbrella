@@ -101,10 +101,9 @@ function MeasureApp() {
   // Handle reset points
   const handleResetPoints = useCallback(() => {
     measurementPoints.reset();
-    calibration.reset();
-    setUnit(DEFAULTS.UNIT);
-    logger.info('Points and calibration reset');
-  }, [measurementPoints, calibration]);
+    setManualDistance(null);
+    logger.info('Points reset (calibration preserved)');
+  }, [measurementPoints]);
 
   // Handle reset image
   const handleResetImage = useCallback(() => {
