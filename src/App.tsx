@@ -125,20 +125,13 @@ function MeasureApp() {
 
   // Handle image export/download
   const prepareExportData = useCallback((): ExportMeasurement[] => {
-    const current: ExportMeasurement = {
-      points: measurementPoints.points,
-      value: manualDistance !== null ? manualDistance : measurement.displayValue,
-      unit: unit
-    };
-
-    const saved: ExportMeasurement[] = savedMeasurements.savedMeasurements.map(sm => ({
+    // Only return saved measurements to avoid cluttered exported images
+    return savedMeasurements.savedMeasurements.map(sm => ({
       points: sm.points,
       value: sm.value,
       unit: sm.unit
     }));
-
-    return [current, ...saved];
-  }, [measurementPoints.points, measurement.displayValue, unit, savedMeasurements.savedMeasurements]);
+  }, [savedMeasurements.savedMeasurements]);
 
   const handleDownload = useCallback(async () => {
     if (!imageUpload.imageSrc) return;

@@ -94,20 +94,28 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     return (
         <div className="glass-panel" style={{
             position: 'absolute',
-            bottom: '30px',
+            bottom: '20px',
             left: '50%',
             transform: 'translateX(-50%)',
-            width: '90%',
-            maxWidth: '600px',
-            padding: '24px',
+            width: '94%',
+            maxWidth: '540px',
+            padding: '16px',
             display: 'flex',
-            flexDirection: 'column', // Stacked layout for better mobile fit
-            gap: '20px',
-            zIndex: 10
+            flexDirection: 'column',
+            gap: '12px',
+            zIndex: 10,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
         }}>
-            {/* Top Row: Editable Distance Display */}
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '12px' }}>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            {/* Top Section: Distance display and units */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px',
+                flexWrap: 'wrap'
+            }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', minWidth: '160px' }}>
                     <input
                         type="number"
                         step="0.01"
@@ -119,7 +127,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                             if (!isNaN(val) && val > 0) {
                                 onManualDistanceChange(val);
                             } else {
-                                // Revert to calculated if empty or invalid
                                 onManualDistanceChange(null);
                             }
                         }}
@@ -132,49 +139,52 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                         }}
                         className="allow-select"
                         style={{
-                            fontSize: '3.5rem',
-                            fontWeight: 700,
+                            fontSize: '2.5rem',
+                            fontWeight: 800,
                             fontFamily: 'var(--font-family-display)',
                             color: isManual ? 'var(--primary)' : 'var(--text-light)',
                             background: 'transparent',
                             border: 'none',
                             borderBottom: isManual ? '2px solid var(--primary)' : '1px solid transparent',
-                            width: '220px',
+                            width: '140px',
                             textAlign: 'right',
                             lineHeight: 1,
-                            padding: '4px',
+                            padding: '2px',
                             outline: 'none',
-                            textShadow: isManual ? '0 0 15px var(--primary-glow)' : 'none',
+                            textShadow: isManual ? '0 0 10px var(--primary-glow)' : 'none',
                             borderRadius: 0,
                             WebkitAppearance: 'none',
                             margin: 0
                         }}
                     />
+                    <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-muted)', marginLeft: '8px' }}>
+                        {unit}
+                    </span>
                     {isManual && (
                         <button
                             onClick={() => onManualDistanceChange(null)}
                             style={{
                                 position: 'absolute',
-                                right: '-30px',
+                                right: '-25px',
                                 background: 'rgba(255,255,255,0.1)',
                                 border: 'none',
                                 borderRadius: '50%',
-                                width: '24px',
-                                height: '24px',
+                                width: '20px',
+                                height: '20px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 color: 'var(--primary)',
                                 cursor: 'pointer',
-                                fontSize: '10px'
+                                fontSize: '8px'
                             }}
-                            title="Reset to calculated"
                         >
                             ✕
                         </button>
                     )}
                 </div>
-                <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '8px' }}>
+
+                <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.4)', padding: '3px', borderRadius: '6px' }}>
                     {(['px', 'cm', 'inch'] as Unit[]).map((u) => (
                         <button
                             key={u}
@@ -183,118 +193,104 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                                 background: unit === u ? 'var(--primary)' : 'transparent',
                                 color: unit === u ? '#000' : 'var(--text-muted)',
                                 border: 'none',
-                                padding: '4px 8px',
+                                padding: '3px 8px',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                fontWeight: 600,
-                                fontSize: '0.9rem',
-                                transition: 'all 0.2s'
+                                fontWeight: 700,
+                                fontSize: '0.75rem',
+                                transition: 'all 0.15s'
                             }}
                         >
-                            {u}
+                            {u.toUpperCase()}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Middle Row: Calibrate Button (Red/Green logic) */}
-            <button
-                className="btn"
-                onClick={onCalibrateStart}
-                style={{
-                    width: '100%',
-                    padding: '16px',
-                    fontSize: '1.1rem',
-                    backgroundColor: isCalibrated ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
-                    borderColor: isCalibrated ? '#2ecc71' : '#e74c3c',
-                    color: isCalibrated ? '#2ecc71' : '#e74c3c',
-                    boxShadow: isCalibrated ? '0 0 15px rgba(46, 204, 113, 0.3)' : '0 0 15px rgba(231, 76, 60, 0.3)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px'
-                }}
-            >
-                <Ruler size={18} />
-                {isCalibrated ? 'Calibrated (Click to Adjust)' : '⚠ Calibration Required'}
-            </button>
+            {/* Bottom Section: Primary Actions */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
+                <div style={{ display: 'flex', gap: '4px', flex: 1 }}>
+                    <button
+                        className="btn"
+                        onClick={onResetPoints}
+                        title="Reset (Points Only)"
+                        style={{
+                            padding: '8px',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderColor: 'transparent',
+                            borderRadius: '8px',
+                            flex: 1
+                        }}
+                    >
+                        <RotateCcw size={18} />
+                    </button>
+                    <button
+                        className="btn"
+                        onClick={onResetImage}
+                        title="New Image"
+                        style={{
+                            padding: '8px',
+                            background: 'rgba(255,255,255,0.05)',
+                            borderColor: 'transparent',
+                            borderRadius: '8px',
+                            flex: 1
+                        }}
+                    >
+                        <ImageIcon size={18} />
+                    </button>
+                    <button
+                        className="btn"
+                        onClick={onCalibrateStart}
+                        title={isCalibrated ? 'Recalibrate' : 'Calibrate'}
+                        style={{
+                            padding: '8px',
+                            background: isCalibrated ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            borderColor: isCalibrated ? '#2ecc71' : '#e74c3c',
+                            color: isCalibrated ? '#2ecc71' : '#e74c3c',
+                            borderRadius: '8px',
+                            flex: 1.5,
+                            gap: '4px',
+                            fontSize: '0.75rem'
+                        }}
+                    >
+                        <Ruler size={16} />
+                        {isCalibrated ? 'Scale Set' : 'Need Scale'}
+                    </button>
+                </div>
 
-
-            {/* Bottom Row: Reset Actions */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                    className="btn"
-                    onClick={onResetPoints}
-                    title="Reset Points & Calibration"
-                    style={{
-                        flex: 1,
-                        background: 'rgba(255,255,255,0.05)',
-                        fontSize: '0.9rem',
-                        padding: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                    }}
-                >
-                    <RotateCcw size={16} />
-                    Reset
-                </button>
-                <button
-                    className="btn"
-                    onClick={onResetImage}
-                    title="New Image"
-                    style={{
-                        flex: 1,
-                        background: 'rgba(255,255,255,0.05)',
-                        fontSize: '0.9rem',
-                        padding: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px'
-                    }}
-                >
-                    <ImageIcon size={16} />
-                    New
-                </button>
-                <button
-                    className="btn btn-primary"
-                    onClick={onDownload}
-                    title="Download to Device"
-                    style={{
-                        flex: 1,
-                        fontSize: '0.85rem',
-                        padding: '12px 8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px'
-                    }}
-                >
-                    <Download size={16} />
-                    Save
-                </button>
-                <button
-                    className="btn"
-                    onClick={onExport}
-                    title="Share Overlay"
-                    style={{
-                        flex: 1,
-                        background: 'rgba(0, 240, 255, 0.1)',
-                        borderColor: 'var(--primary)',
-                        color: 'var(--primary)',
-                        fontSize: '0.85rem',
-                        padding: '12px 8px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '4px'
-                    }}
-                >
-                    <Share2 size={16} />
-                    Share
-                </button>
+                <div style={{ display: 'flex', gap: '4px', flex: 1.2 }}>
+                    <button
+                        className="btn btn-primary"
+                        onClick={onDownload}
+                        style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            flex: 1,
+                            fontSize: '0.85rem',
+                            gap: '6px'
+                        }}
+                    >
+                        <Download size={18} />
+                        Save
+                    </button>
+                    <button
+                        className="btn"
+                        onClick={onExport}
+                        style={{
+                            padding: '8px 12px',
+                            background: 'rgba(0, 240, 255, 0.15)',
+                            borderColor: 'var(--primary)',
+                            color: 'var(--primary)',
+                            borderRadius: '8px',
+                            flex: 1,
+                            fontSize: '0.85rem',
+                            gap: '6px'
+                        }}
+                    >
+                        <Share2 size={18} />
+                        Share
+                    </button>
+                </div>
             </div>
         </div>
     );
