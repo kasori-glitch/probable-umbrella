@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Download, Share2 } from 'lucide-react';
 import { downloadBlob, shareBlob } from '../lib/exportUtils';
 import { logger } from '../utils/logger';
@@ -14,19 +14,8 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     imageBlob,
     onClose
 }) => {
-    const [dataUrl, setDataUrl] = useState<string>(imageUrl);
     const [fileName] = useState(() => `measurement-${Date.now()}.png`);
     const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            if (typeof reader.result === 'string') {
-                setDataUrl(reader.result);
-            }
-        };
-        reader.readAsDataURL(imageBlob);
-    }, [imageBlob]);
 
     const handleDownload = async () => {
         if (saving) return;
@@ -35,7 +24,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             await downloadBlob(imageBlob, fileName);
         } catch (error) {
             logger.error('Download failed', { error });
-            alert('Download failed. Please try the Share button instead.');
+            alert('Download failed. Try long-pressing the image to save manually.');
         } finally {
             setSaving(false);
         }
@@ -47,7 +36,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         try {
             const success = await shareBlob(imageBlob, fileName);
             if (!success) {
-                alert('Sharing is not supported on this device. Please try the Download button.');
+                alert('Sharing is not supported on this device. Please use the Save button.');
             }
         } finally {
             setSaving(false);
@@ -92,13 +81,22 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 textAlign: 'center',
                 marginBottom: '20px'
             }}>
-                <h2 style={{ color: 'var(--primary)', margin: '0 0 8px 0', fontFamily: 'var(--font-family-display)' }}>Ready to Save</h2>
+                <h2 style={{ color: 'var(--primary)', margin: '0 0 8px 0', fontFamily: 'var(--font-family-display)' }}>Measurement Ready</h2>
                 <p style={{
                     color: 'var(--text-muted)',
                     fontSize: '0.9rem',
                     margin: 0
                 }}>
-                    Use the buttons below to save or share your measurement
+                    Save to device or share with others
+                </p>
+                <p style={{
+                    color: 'var(--primary)',
+                    fontSize: '0.75rem',
+                    marginTop: '8px',
+                    opacity: 0.8,
+                    fontStyle: 'italic'
+                }} className="mobile-only">
+                    Tip: Long press image to save manually if buttons fail
                 </p>
             </div>
 
@@ -115,8 +113,9 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                 background: '#000'
             }}>
                 <img
-                    src={dataUrl}
+                    src={imageUrl}
                     alt="Measurement Preview"
+                    className="selectable-image"
                     style={{
                         maxWidth: '100%',
                         maxHeight: '100%',
@@ -124,7 +123,6 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                         display: 'block',
                         width: '100%'
                     }}
-                    draggable={false}
                 />
             </div>
 
@@ -142,7 +140,7 @@ export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
                     style={{ flex: 1, padding: '16px', opacity: saving ? 0.6 : 1 }}
                 >
                     <Download size={20} />
-                    {saving ? 'Saving...' : 'Save'}
+                    {saving ? 'Processing...' : 'Save'}
                 </button>
                 <button
                     className="btn"

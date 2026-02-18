@@ -10,7 +10,7 @@ import { useImageUpload } from './hooks/useImageUpload';
 import { useMeasurementPoints } from './hooks/useMeasurementPoints';
 import { useSavedMeasurements } from './hooks/useSavedMeasurements';
 import { useMeasurement } from './hooks/useMeasurement';
-import type { Unit, Dimensions, CalibrationInput } from './types';
+import type { Unit, Dimensions, CalibrationInput, Point } from './types';
 import { DEFAULTS } from './constants';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -54,6 +54,7 @@ function MeasureApp() {
     return localStorage.getItem('tutorial_completed') !== 'true';
   });
   const [previewImage, setPreviewImage] = useState<{ blob: Blob; url: string } | null>(null);
+  const [manualDistance, setManualDistance] = useState<number | null>(null);
 
   // Calculate measurements
   const measurement = useMeasurement(
@@ -127,7 +128,7 @@ function MeasureApp() {
   const prepareExportData = useCallback((): ExportMeasurement[] => {
     const current: ExportMeasurement = {
       points: measurementPoints.points,
-      value: measurement.displayValue,
+      value: manualDistance !== null ? manualDistance : measurement.displayValue,
       unit: unit
     };
 
@@ -162,6 +163,11 @@ function MeasureApp() {
 
   const handleShare = handleDownload; // Both now open the preview modal for consistency on mobile
 
+  const handlePointsChange = useCallback((newPoints: [Point, Point]) => {
+    measurementPoints.setPoints(newPoints);
+    setManualDistance(null); // Reset manual override when points move
+  }, [measurementPoints]);
+
   return (
     <div className={`app-container ${isSidebarOpen ? 'sidebar-open' : ''}`}>
       <Header onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} isSidebarOpen={isSidebarOpen} />
@@ -189,7 +195,7 @@ function MeasureApp() {
               <ImageWorkspace
                 imageSrc={imageUpload.imageSrc}
                 points={measurementPoints.points}
-                onPointsChange={measurementPoints.setPoints}
+                onPointsChange={handlePointsChange}
                 onDimensionsChange={handleDimensionsChange}
                 onDragStart={() => setIsDraggingPoints(true)}
                 onDragEnd={() => setIsDraggingPoints(false)}
@@ -206,6 +212,8 @@ function MeasureApp() {
             >
               <ControlPanel
                 distance={measurement.displayValue}
+                manualDistance={manualDistance}
+                onManualDistanceChange={setManualDistance}
                 unit={unit}
                 isCalibrated={calibration.isCalibrated}
                 isCalibratingMode={isCalibrating}
@@ -213,8 +221,8 @@ function MeasureApp() {
                 onCalibrateStart={() => setIsCalibrating(true)}
                 onCalibrateConfirm={() => setIsInputModalOpen(true)}
                 onCalibrateCancel={() => setIsCalibrating(false)}
-                onResetPoints={handleResetPoints}
-                onResetImage={handleResetImage}
+                onResetPoints={() => { handleResetPoints(); setManualDistance(null); }}
+                onResetImage={() => { handleResetImage(); setManualDistance(null); }}
                 onExport={handleShare}
                 onDownload={handleDownload}
               />

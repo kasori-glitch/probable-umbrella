@@ -139,41 +139,45 @@ export async function renderMeasurementToImage(
 
 /**
  * Downloads a blob as a file.
- * On native Capacitor (Android/iOS), uses navigator.share() since <a download>
- * does not work in WebView. Falls back to <a download> for desktop browsers.
+ * On mobile browsers or native platforms, attempts to use navigator.share() first
+ * for a better user experience (Save to Photos, Share to App, etc).
  */
 export async function downloadBlob(blob: Blob, fileName: string): Promise<void> {
-    // On native platforms, <a download> doesn't work in WebView.
-    // Use navigator.share which triggers the OS share sheet (includes "Save to device").
-    if (Capacitor.isNativePlatform()) {
-        const shared = await shareBlob(blob, fileName);
-        if (shared) return;
-        // If share failed, fall through to <a> method as last resort
+    // Detect mobile browser
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // On mobile or native platforms, prioritize Web Share API
+    if (isMobile || Capacitor.isNativePlatform()) {
+        try {
+            const shared = await shareBlob(blob, fileName);
+            if (shared) return;
+        } catch (error) {
+            logger.warn('Share failed in downloadBlob fallback', { error });
+        }
     }
 
-    // Desktop browser: <a download> works reliably
+    // Standard download fallback
     return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const dataUrl = reader.result as string;
+        try {
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
-            a.href = dataUrl;
+            a.href = url;
             a.download = fileName;
 
             document.body.appendChild(a);
             a.click();
 
+            // Cleanup
             setTimeout(() => {
                 document.body.removeChild(a);
+                URL.revokeObjectURL(url);
                 resolve();
             }, 100);
-        };
-        reader.onerror = () => {
-            logger.error('Failed to convert blob to data URL for download');
-            reject(new Error('Download conversion failed'));
-        };
-        reader.readAsDataURL(blob);
+        } catch (error) {
+            logger.error('Failed to create download link', { error });
+            reject(new Error('Download link creation failed'));
+        }
     });
 }
 
@@ -183,27 +187,27 @@ export async function downloadBlob(blob: Blob, fileName: string): Promise<void> 
 export async function shareBlob(blob: Blob, fileName: string): Promise<boolean> {
     try {
         if (!navigator.share || !navigator.canShare) {
-            logger.warn('Web Share API not supported');
+            logger.warn('Web Share API not supported on this browser/environment');
             return false;
         }
 
-        const file = new File([blob], fileName, { type: blob.type });
-        const shareData = {
+        const file = new File([blob], fileName, { type: 'image/png' });
+        const shareData: ShareData = {
             files: [file],
             title: 'Measurement Export',
-            text: 'Sent from On Screen Measure app'
+            text: 'Measurement from On Screen Measure'
         };
 
         if (navigator.canShare(shareData)) {
             await navigator.share(shareData);
             return true;
         } else {
-            logger.warn('Browser cannot share this file data');
+            logger.warn('Browser indicates it cannot share this image file');
             return false;
         }
     } catch (error) {
         if ((error as Error).name !== 'AbortError') {
-            logger.error('Error sharing image', { error: error as Error });
+            logger.error('Error during Web Share', { error: error as Error });
         }
         return false;
     }

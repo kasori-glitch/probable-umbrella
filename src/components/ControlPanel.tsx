@@ -4,6 +4,8 @@ import type { Unit } from '../types';
 
 interface ControlPanelProps {
     distance: number;
+    manualDistance: number | null;
+    onManualDistanceChange: (val: number | null) => void;
     unit: Unit;
     isCalibrated: boolean;
     isCalibratingMode: boolean; // Used to conditionally render UI
@@ -19,6 +21,8 @@ interface ControlPanelProps {
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
     distance,
+    manualDistance,
+    onManualDistanceChange,
     unit,
     isCalibrated,
     isCalibratingMode,
@@ -73,6 +77,9 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         );
     }
 
+    const currentDisplayValue = manualDistance !== null ? manualDistance : distance;
+    const isManual = manualDistance !== null;
+
     // Default view for measurement mode
     return (
         <div className="glass-panel" style={{
@@ -88,17 +95,61 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             gap: '20px',
             zIndex: 10
         }}>
-            {/* Top Row: Distance Display */}
+            {/* Top Row: Editable Distance Display */}
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: '12px' }}>
-                <span style={{
-                    fontSize: '3.5rem',
-                    fontWeight: 700,
-                    fontFamily: 'var(--font-family-display)',
-                    color: 'var(--text-light)',
-                    lineHeight: 1
-                }}>
-                    {distance.toFixed(2)}
-                </span>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input
+                        type="number"
+                        step="0.01"
+                        value={isManual ? manualDistance : currentDisplayValue.toFixed(2)}
+                        onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            onManualDistanceChange(isNaN(val) ? null : val);
+                        }}
+                        className="allow-select"
+                        style={{
+                            fontSize: '3.5rem',
+                            fontWeight: 700,
+                            fontFamily: 'var(--font-family-display)',
+                            color: isManual ? 'var(--primary)' : 'var(--text-light)',
+                            background: 'transparent',
+                            border: 'none',
+                            borderBottom: isManual ? '2px solid var(--primary)' : '1px solid transparent',
+                            width: '220px',
+                            textAlign: 'right',
+                            lineHeight: 1,
+                            padding: '4px',
+                            outline: 'none',
+                            textShadow: isManual ? '0 0 15px var(--primary-glow)' : 'none',
+                            borderRadius: 0,
+                            WebkitAppearance: 'none',
+                            margin: 0
+                        }}
+                    />
+                    {isManual && (
+                        <button
+                            onClick={() => onManualDistanceChange(null)}
+                            style={{
+                                position: 'absolute',
+                                right: '-30px',
+                                background: 'rgba(255,255,255,0.1)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '24px',
+                                height: '24px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--primary)',
+                                cursor: 'pointer',
+                                fontSize: '10px'
+                            }}
+                            title="Reset to calculated"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
                 <div style={{ display: 'flex', gap: '4px', background: 'rgba(0,0,0,0.3)', padding: '4px', borderRadius: '8px' }}>
                     {(['px', 'cm', 'inch'] as Unit[]).map((u) => (
                         <button
