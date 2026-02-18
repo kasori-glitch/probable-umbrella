@@ -195,7 +195,10 @@ function MeasureApp() {
               <ImageWorkspace
                 imageSrc={imageUpload.imageSrc}
                 points={measurementPoints.points}
+                distance={manualDistance !== null ? manualDistance : measurement.displayValue}
+                unit={unit}
                 onPointsChange={handlePointsChange}
+                onSave={savedMeasurements.saveMeasurement}
                 onDimensionsChange={handleDimensionsChange}
                 onDragStart={() => setIsDraggingPoints(true)}
                 onDragEnd={() => setIsDraggingPoints(false)}

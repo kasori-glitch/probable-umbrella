@@ -35,6 +35,17 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     onExport,
     onDownload
 }) => {
+    // Local state for the input field to allow smooth typing
+    const [inputValue, setInputValue] = React.useState<string>('');
+    const [isFocused, setIsFocused] = React.useState(false);
+
+    // Sync local input value with distance/manualDistance when NOT focused
+    React.useEffect(() => {
+        if (!isFocused) {
+            setInputValue(manualDistance !== null ? manualDistance.toString() : distance.toFixed(2));
+        }
+    }, [distance, manualDistance, isFocused]);
+
     // Conditional rendering for calibration mode
     if (isCalibratingMode) {
         return (
@@ -77,7 +88,6 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
         );
     }
 
-    const currentDisplayValue = manualDistance !== null ? manualDistance : distance;
     const isManual = manualDistance !== null;
 
     // Default view for measurement mode
@@ -101,10 +111,24 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                     <input
                         type="number"
                         step="0.01"
-                        value={isManual ? manualDistance : currentDisplayValue.toFixed(2)}
+                        value={inputValue}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => {
+                            setIsFocused(false);
+                            const val = parseFloat(inputValue);
+                            if (!isNaN(val) && val > 0) {
+                                onManualDistanceChange(val);
+                            } else {
+                                // Revert to calculated if empty or invalid
+                                onManualDistanceChange(null);
+                            }
+                        }}
                         onChange={(e) => {
+                            setInputValue(e.target.value);
                             const val = parseFloat(e.target.value);
-                            onManualDistanceChange(isNaN(val) ? null : val);
+                            if (!isNaN(val) && val > 0) {
+                                onManualDistanceChange(val);
+                            }
                         }}
                         className="allow-select"
                         style={{

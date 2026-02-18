@@ -1,12 +1,16 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { Plus } from 'lucide-react';
 import { MeasurementPoint } from './MeasurementPoint';
 import { Magnifier } from './Magnifier';
-import type { Point } from '../types';
+import type { Point, Unit } from '../types';
 
 interface ImageWorkspaceProps {
     imageSrc: string;
     points: [Point, Point];
+    distance: number;
+    unit: Unit;
     onPointsChange: (points: [Point, Point]) => void;
+    onSave?: (points: [Point, Point], value: number, unit: Unit) => void;
     onImageLoaded?: (width: number, height: number) => void;
     onDimensionsChange?: (width: number, height: number) => void;
     onDragStart?: () => void;
@@ -20,7 +24,10 @@ import('../lib/cvUtils').then(m => { snapModule = m; });
 export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     imageSrc,
     points,
+    distance,
+    unit,
     onPointsChange,
+    onSave,
     onImageLoaded,
     onDimensionsChange,
     onDragStart,
@@ -208,6 +215,61 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
                         style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.5))' }}
                     />
                 </svg>
+
+                {/* Midpoint Label and Quick Save Button */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        left: `${((points[0].x + points[1].x) / 2) * 100}%`,
+                        top: `${((points[0].y + points[1].y) / 2) * 100}%`,
+                        transform: 'translate(-50%, -130%)', // Lift it above the line
+                        zIndex: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        pointerEvents: 'auto'
+                    }}
+                >
+                    <div style={{
+                        background: 'rgba(5, 5, 5, 0.85)',
+                        border: '1px solid var(--primary)',
+                        borderRadius: '20px',
+                        padding: '4px 10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: '0 0 10px var(--primary-glow)',
+                        backdropFilter: 'blur(4px)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem'
+                    }}>
+                        <span>{distance.toFixed(2)} {unit}</span>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSave?.(points, distance, unit);
+                            }}
+                            className="quick-save-btn"
+                            style={{
+                                background: 'var(--primary)',
+                                color: 'black',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '22px',
+                                height: '22px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                            }}
+                            title="Quick Save"
+                        >
+                            <Plus size={14} />
+                        </button>
+                    </div>
+                </div>
 
                 {/* Magnifier - Rendered when active and size is known */}
                 {activePointIndex !== null && containerSize && (
