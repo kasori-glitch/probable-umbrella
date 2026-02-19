@@ -94,18 +94,19 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
     return (
         <div className="glass-panel" style={{
             position: 'absolute',
-            bottom: '20px',
+            bottom: '40px', // Lift it up more
             left: '50%',
             transform: 'translateX(-50%)',
             width: '94%',
             maxWidth: '540px',
             padding: '16px',
+            paddingBottom: 'calc(16px + env(safe-area-inset-bottom, 0px))', // Mobile safety
             display: 'flex',
             flexDirection: 'column',
             gap: '12px',
             zIndex: 10,
             border: '1px solid rgba(255, 255, 255, 0.15)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)'
         }}>
             {/* Top Section: Distance display and units */}
             <div style={{

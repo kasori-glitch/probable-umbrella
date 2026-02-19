@@ -17,10 +17,7 @@ interface ImageWorkspaceProps {
     onDragEnd?: () => void;
 }
 
-// Pre-import cvUtils so we don't dynamic-import on every pointer move
-let snapModule: typeof import('../lib/cvUtils') | null = null;
-import('../lib/cvUtils').then(m => { snapModule = m; });
-
+// Simplified pointer movement logic without snapping
 export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
     imageSrc,
     points,
@@ -70,7 +67,7 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
         return () => observer.disconnect();
     }, [handleDimensionsChange]);
 
-    // Handle Dragging - uses refs so the effect only re-runs when activePointIndex changes
+    // Handle Dragging - uses refs for peak performance
     useEffect(() => {
         if (activePointIndex === null) return;
 
@@ -83,50 +80,24 @@ export const ImageWorkspace: React.FC<ImageWorkspaceProps> = ({
             if (!containerRef.current) return;
 
             const rect = containerRef.current.getBoundingClientRect();
-            const img = containerRef.current.querySelector('img');
 
             let x = (e.clientX - rect.left) / rect.width;
             let y = (e.clientY - rect.top) / rect.height;
 
+            // Clamp to [0, 1] range
             x = Math.max(0, Math.min(1, x));
             y = Math.max(0, Math.min(1, y));
 
-            // Magnet-Snap Logic (non-blocking, uses pre-loaded module)
-            let finalX = x;
-            let finalY = y;
+            const currentPoints = pointsRef.current;
+            const newPoints = [...currentPoints] as [Point, Point];
+            newPoints[activePointIndex] = { x, y };
 
-            if (img && img.complete && snapModule) {
-                const snapPoint = snapModule.findBestSnapPoint(img, { x, y }, 20, 15);
-                // findBestSnapPoint returns a Promise, resolve it
-                snapPoint.then(result => {
-                    if (result) {
-                        finalX = result.x;
-                        finalY = result.y;
-                    }
-
-                    const currentPoints = pointsRef.current;
-                    const newPoints = [...currentPoints] as [Point, Point];
-                    newPoints[activePointIndex] = { x: finalX, y: finalY };
-
-                    if (animationFrameId !== null) {
-                        cancelAnimationFrame(animationFrameId);
-                    }
-                    animationFrameId = requestAnimationFrame(() => {
-                        onPointsChangeRef.current(newPoints);
-                    });
-                });
-            } else {
-                const currentPoints = pointsRef.current;
-                const newPoints = [...currentPoints] as [Point, Point];
-                newPoints[activePointIndex] = { x: finalX, y: finalY };
-
-                if (animationFrameId !== null) {
-                    cancelAnimationFrame(animationFrameId);
-                }
-                animationFrameId = requestAnimationFrame(() => {
-                    onPointsChangeRef.current(newPoints);
-                });
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
             }
+            animationFrameId = requestAnimationFrame(() => {
+                onPointsChangeRef.current(newPoints);
+            });
         };
 
         const handlePointerUp = () => {
